@@ -7,7 +7,7 @@ Protótipo 3D de sobrevivência para navegador e Android.
 - Exploração em terceira pessoa e controles para teclado/tela de toque.
 - Necessidades de vida, fome, sede e energia.
 - Coleta de madeira, pedra e frutas.
-- Construção de abrigo e jangada (sistema de fibras em desenvolvimento).
+- Construção de abrigo e jangada com coleta de fibras.
 - Salvamento automático local a cada 5 segundos.
 - Opções de qualidade gráfica baixa, média e alta.
 - Workflow do GitHub Actions para gerar APK Android de depuração.
