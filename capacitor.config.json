@@ -1,0 +1,8 @@
+{
+  "appId": "com.wildshore3d.game",
+  "appName": "Wildshore 3D",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
