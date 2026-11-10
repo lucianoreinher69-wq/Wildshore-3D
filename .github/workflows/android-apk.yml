@@ -33,6 +33,18 @@ jobs:
         run: npx cap add android
       - name: Sync web app
         run: npx cap sync android
+      - name: Force landscape orientation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+          s, count = re.subn(r'<activity\\b(?![^>]*android:screenOrientation=)', '<activity android:screenOrientation="landscape"', s, count=1)
+          if count != 1:
+              raise SystemExit("Could not set the main Android activity to landscape")
+          p.write_text(s)
+          PY
       - name: Build debug APK
         working-directory: android
         run: |
