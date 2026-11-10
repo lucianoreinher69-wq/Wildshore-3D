@@ -15,7 +15,7 @@
 <div id="inventory" class="panel">Inventário: <span id="inv">Madeira 0 · Pedra 0 · Fibra 0 · Frutas 0</span></div><div id="help">WASD / setas para andar · aproxime-se dos recursos e toque em Coletar</div>
 </div>
 <div id="menu"><div class="box"><h1>WILDSHORE 3D</h1><b>Sobreviva. Explore. Construa.</b><p>Explore ilhas tropicais, colete recursos, cuide das necessidades e construa seu abrigo. O progresso é salvo automaticamente.</p><button id="start">Iniciar aventura</button><button id="resume">Continuar jogo salvo</button><p><small>Recomendado jogar na horizontal. Use os controles na tela ou WASD.</small></p></div></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="vendor/three.min.js"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);let scene,camera,renderer,player,clock,terrain=[],resources=[],islandIndex=0,started=false,move={forward:false,back:false,left:false,right:false},lastSave=0;
