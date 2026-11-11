@@ -22,7 +22,7 @@ const $=id=>document.getElementById(id);const setDebug=t=>{const el=$('debug');i
 const state={hp:100,hunger:100,thirst:100,stam:100,wood:0,stone:0,fiber:0,fruit:0,shelter:false,raft:false,x:0,z:0,island:0};
 const islands=['Costa Verde','Ilha das Palmeiras','Atol Azul','Ilha Vulcânica'];
 function say(t){$('message').textContent=t;clearTimeout(say.timer);say.timer=setTimeout(()=>$('message').textContent='',2600)}
-function updateUI(){for(const [k,id] of [['hp','hp'],['hunger','hunger'],['thirst','thirst'],['stam','stam']]){$(id).style.width=state[k]+'%';$(id+'v').textContent=Math.round(state[k])}$('inv').textContent='Madeira '+state.wood+' · Pedra '+state.stone+' · Fibra '+state.fiber+' · Frutas '+state.fruit;$('island').textContent='Ilha: '+islands[state.island]}
+function updateUI(){for(const [k,id,valueId] of [['hp','hp','hpv'],['hunger','hunger','hungerV'],['thirst','thirst','thirstV'],['stam','stam','stamV']]){const bar=$(id),value=$(valueId);if(bar)bar.style.width=state[k]+'%';if(value)value.textContent=Math.round(state[k])}const inv=$('inv'),island=$('island');if(inv)inv.textContent='Madeira '+state.wood+' · Pedra '+state.stone+' · Fibra '+state.fiber+' · Frutas '+state.fruit;if(island)island.textContent='Ilha: '+islands[state.island]}
 function save(){state.x=player?player.position.x:state.x;state.z=player?player.position.z:state.z;state.island=islandIndex;localStorage.setItem('wildshore3d_save',JSON.stringify(state));say('Progresso salvo!')}
 function load(){try{const d=JSON.parse(localStorage.getItem('wildshore3d_save'));if(d)Object.assign(state,d);islandIndex=state.island||0;return !!d}catch(e){return false}}
 function mat(color,rough=.9){return new THREE.MeshStandardMaterial({color,roughness:rough})}
