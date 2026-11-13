@@ -92,7 +92,7 @@ const keys={};function updateKeys(){if('ontouchstart' in window&&activeTouch!==n
 window.addEventListener('keydown',e=>{if(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){keys[e.key]=true;updateKeys()}});
 window.addEventListener('keyup',e=>{if(keys[e.key]){keys[e.key]=false;updateKeys()}});
 
-$('start').onclick=()=>{$('menu').classList.add('hidden');started=true;setDebug('JOGO INICIADO — toque no analógico');};$('resume').onclick=()=>{if(load()){buildIsland();updateUI();say('Jogo restaurado!')}else say('Nenhum jogo salvo encontrado.');$('menu').classList.add('hidden');started=true};
+function beginAdventure(e){if(e){e.preventDefault();e.stopPropagation()}if(started)return;started=true;$('menu').classList.add('hidden');$('menu').style.display='none';updateUI();say('Aventura iniciada! Explore a ilha.');setDebug('JOGO INICIADO — toque no analógico')}const startButton=$('start');startButton.addEventListener('pointerup',beginAdventure,{passive:false});startButton.addEventListener('click',beginAdventure);$('resume').addEventListener('click',e=>{e.preventDefault();if(load()){buildIsland();updateUI();say('Jogo restaurado!')}else say('Nenhum jogo salvo encontrado.');$('menu').classList.add('hidden');$('menu').style.display='none';started=true});
 init();if(load()){buildIsland();updateUI()}else updateUI();window.addEventListener('beforeunload',saveSilent);
 })();
 </script></body></html>
