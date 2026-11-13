@@ -45,6 +45,51 @@ jobs:
               raise SystemExit("Could not set the main Android activity to landscape")
           p.write_text(s)
           PY
+      - name: Configure permanent Android signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          test -n "$KEYSTORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/wildshore-release.jks
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+          s, count = re.subn(r'(versionCode\\s+)\\d+', lambda m: m.group(1) + __import__('os').environ['VERSION_CODE'], s, count=1)
+          if count != 1:
+              raise SystemExit("Could not set Android versionCode")
+          s += """
+          
+          // Stable signing key so future APKs can update the installed game.
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("../wildshore-release.jks")
+                      storePassword System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASSWORD")
+                  }
+              }
+              buildTypes {
+                  debug {
+                      signingConfig signingConfigs.release
+                  }
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          """
+          p.write_text(s)
+          PY
       - name: Build debug APK
         working-directory: android
         run: |
