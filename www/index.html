@@ -15,7 +15,23 @@
 <div id="actions"><button id="gather">Coletar</button><button id="fishBtn">Pescar</button><button id="fireBtn">Fogueira</button><button id="cookBtn">Cozinhar</button><button id="huntBtn">Caçar</button><button id="trapBtn">Armadilha</button><button id="waterCollectorBtn">Coletor</button><button id="boilBtn">Ferver</button><button id="eat">Comer</button><button id="drink">Beber</button><button id="craft">Criar abrigo</button><button id="houseBtn">Casa</button><button id="chestBtn">Baú</button><button id="storeBtn" class="hidden">Guardar</button><button id="takeBtn" class="hidden">Retirar</button><button id="rest">Descansar</button><button id="raft">Jangada</button><button id="board" class="hidden">Embarcar</button><button id="islandBtn">Explorar ilha</button></div>
 <div id="inventory" class="panel">Inventário: <span id="inv">Madeira 0 · Pedra 0 · Fibra 0 · Frutas 0 · Peixes 0 · Cozidos 0 · Carne 0 · Carne assada 0</span></div><div id="help">WASD / setas para andar · aproxime-se dos recursos e toque em Coletar</div>
 </div>
-<div id="menu"><div class="box"><h1>WILDSHORE 3D</h1><b>Sobreviva. Explore. Construa.</b><p>Explore ilhas tropicais, colete recursos, cuide das necessidades e construa seu abrigo. O progresso é salvo automaticamente.</p><button id="start">Iniciar aventura</button><button id="resume">Continuar jogo salvo</button><p><small>Recomendado jogar na horizontal. Use o analógico na tela ou WASD.</small></p></div></div>
+<div id="menu"><div class="box"><h1>WILDSHORE 3D</h1><b>Sobreviva. Explore. Construa.</b><p>Explore ilhas tropicais, colete recursos, cuide das necessidades e construa seu abrigo. O progresso é salvo automaticamente.</p><button id="start" type="button" onclick="window.wildshoreStart(event)">Iniciar aventura</button><button id="resume">Continuar jogo salvo</button><p><small>Recomendado jogar na horizontal. Use o analógico na tela ou WASD.</small></p></div></div>
+<script>
+window.__wildshoreStartRequested=false;
+window.wildshoreStart=function(e){
+  if(e){if(e.cancelable)e.preventDefault();e.stopPropagation()}
+  if(typeof window.beginAdventure==='function'){window.beginAdventure(e);return}
+  window.__wildshoreStartRequested=true;
+  var menu=document.getElementById('menu');
+  var message=document.getElementById('message');
+  if(message)message.textContent='Preparando sua aventura...';
+  if(menu){menu.style.pointerEvents='none'}
+};
+window.addEventListener('error',function(e){
+  var message=document.getElementById('message');
+  if(message)message.textContent='Erro ao carregar o jogo: '+(e.message||'falha no JavaScript');
+});
+</script>
 <script src="vendor/three.min.js"></script>
 <script>
 (()=>{'use strict';
@@ -100,6 +116,7 @@ if(startButton){startButton.type='button';startButton.onclick=beginAdventure;sta
 $('resume').addEventListener('click',e=>{e.preventDefault();if(!gameReady){say('O jogo ainda está carregando.');return}if(load()){buildIsland();updateUI();say('Jogo restaurado!')}else say('Nenhum jogo salvo encontrado.');$('menu').classList.add('hidden');$('menu').style.display='none';$('menu').style.pointerEvents='none';started=true});
 window.addEventListener('beforeunload',saveSilent);
 try{init();gameReady=true}catch(err){gameReady=false;showInitError(err)}if(gameReady){try{if(load()){buildIsland();updateUI()}else updateUI()}catch(err){showInitError('Falha ao restaurar o progresso: '+String(err&&err.message||err));gameReady=true}}
+if(gameReady&&window.__wildshoreStartRequested){window.__wildshoreStartRequested=false;beginAdventure()}
 
 })();
 </script></body></html>
