@@ -92,14 +92,14 @@ const keys={};function updateKeys(){if('ontouchstart' in window&&activeTouch!==n
 window.addEventListener('keydown',e=>{if(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){keys[e.key]=true;updateKeys()}});
 window.addEventListener('keyup',e=>{if(keys[e.key]){keys[e.key]=false;updateKeys()}});
 
-function beginAdventure(e){if(e){if(e.cancelable)e.preventDefault();e.stopPropagation()}if(started)return;if(!gameReady){say('O jogo ainda está carregando. Tente novamente em instantes.');return}started=true;const menu=$('menu');if(menu){menu.classList.add('hidden');menu.style.display='none';menu.style.visibility='hidden';menu.style.pointerEvents='none'}try{updateUI();say('Aventura iniciada! Explore a ilha.')}catch(err){showInitError(err)}setDebug('JOGO INICIADO — toque no analógico')}
+function beginAdventure(e){if(e){if(e.cancelable)e.preventDefault();e.stopPropagation()}if(started)return;if(!gameReady){showInitError('O motor do jogo não terminou de iniciar. Confira a mensagem de diagnóstico e recarregue.');return}started=true;const menu=$('menu');if(menu){menu.classList.add('hidden');menu.style.display='none';menu.style.visibility='hidden';menu.style.pointerEvents='none'}try{updateUI();say('Aventura iniciada! Explore a ilha.')}catch(err){showInitError(err)}setDebug('JOGO INICIADO — toque no analógico')}
 function showInitError(err){const detail=String(err&&err.message||err||'Erro desconhecido');const debug=$('debug'),message=$('message'),menu=$('menu');if(debug){debug.style.setProperty('display','block','important');debug.textContent='ERRO AO INICIAR: '+detail}if(message)message.textContent='Não foi possível carregar o jogo. Recarregue e tente novamente.';if(menu){menu.classList.remove('hidden');menu.style.display='flex';menu.style.visibility='visible';menu.style.pointerEvents='auto'}if(window.console&&console.error)console.error('Wildshore initialization error',err)}
 window.beginAdventure=beginAdventure;
 const startButton=$('start');
 if(startButton){startButton.type='button';startButton.onclick=beginAdventure;startButton.addEventListener('touchstart',beginAdventure,{capture:true,passive:false});startButton.addEventListener('touchend',beginAdventure,{capture:true,passive:false});startButton.addEventListener('pointerdown',beginAdventure,true);startButton.addEventListener('pointerup',beginAdventure,true);startButton.addEventListener('click',beginAdventure,true)}
 $('resume').addEventListener('click',e=>{e.preventDefault();if(!gameReady){say('O jogo ainda está carregando.');return}if(load()){buildIsland();updateUI();say('Jogo restaurado!')}else say('Nenhum jogo salvo encontrado.');$('menu').classList.add('hidden');$('menu').style.display='none';$('menu').style.pointerEvents='none';started=true});
 window.addEventListener('beforeunload',saveSilent);
-try{init();if(load()){buildIsland();updateUI()}else updateUI();gameReady=true}catch(err){gameReady=false;showInitError(err)}
+try{init();gameReady=true}catch(err){gameReady=false;showInitError(err)}if(gameReady){try{if(load()){buildIsland();updateUI()}else updateUI()}catch(err){showInitError('Falha ao restaurar o progresso: '+String(err&&err.message||err));gameReady=true}}
 
 })();
 </script></body></html>
