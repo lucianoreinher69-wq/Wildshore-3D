@@ -40,7 +40,7 @@ jobs:
           import re
           p = Path("android/app/src/main/AndroidManifest.xml")
           s = p.read_text()
-          s, count = re.subn(r'<activity\b(?![^>]*android:screenOrientation=)', '<activity android:screenOrientation="landscape"', s, count=1)
+          s, count = re.subn(r'<activity\\b(?![^>]*android:screenOrientation=)', '<activity android:screenOrientation="landscape"', s, count=1)
           if count != 1:
               raise SystemExit("Could not set the main Android activity to landscape")
           p.write_text(s)
@@ -55,16 +55,19 @@ jobs:
           test -n "$KEYSTORE_BASE64"
           test -n "$KEYSTORE_PASSWORD"
           test -n "$KEY_ALIAS"
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/wildshore-release.jks
-          # Validate the uploaded keystore and password before Gradle starts.
-          keytool -list -keystore android/wildshore-release.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/wildshore-release.jks
+          echo "Decoded keystore size: $(wc -c < android/wildshore-release.jks) bytes"
+          if ! keytool -list -keystore android/wildshore-release.jks -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" 2>&1; then
+            echo "Keystore validation failed. Check the saved Base64, password, and alias."
+            exit 1
+          fi
           python3 - <<'PY'
           from pathlib import Path
           import re
           import os
           p = Path("android/app/build.gradle")
           s = p.read_text()
-          s, count = re.subn(r'(versionCode\s+)\d+', lambda m: m.group(1) + os.environ['VERSION_CODE'], s, count=1)
+          s, count = re.subn(r'(versionCode\\s+)\\d+', lambda m: m.group(1) + os.environ['VERSION_CODE'], s, count=1)
           if count != 1:
               raise SystemExit("Could not set Android versionCode")
           s += """
