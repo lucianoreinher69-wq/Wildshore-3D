@@ -140,8 +140,8 @@ function setMove(x,z){const n=Math.hypot(x,z);if(n>1){x/=n;z/=n}move.x=x;move.z=
 function steerAt(x,y){const r=pad.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=r.width*.34;let dx=x-cx,dy=y-cy,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max}stick.style.transform='translate('+dx+'px,'+dy+'px)';let nx=dx/max,ny=dy/max;const dead=.08;if(Math.abs(nx)<dead)nx=0;if(Math.abs(ny)<dead)ny=0;setMove(-nx,-ny)}
 function stopMove(){stickPointer=null;activeTouch=null;setMove(0,0);stick.style.transform='translate(0px,0px)'}
 if('ontouchstart' in window){
- pad.addEventListener('touchstart',e=>{e.preventDefault();if(activeTouch!==null)return;const t=e.changedTouches[0];activeTouch=t.identifier;setDebug('TOQUE RECEBIDO');steerAt(t.clientX,t.clientY)},{passive:false});
- document.addEventListener('touchmove',e=>{if(activeTouch===null)return;for(const t of e.changedTouches){if(t.identifier===activeTouch){e.preventDefault();steerAt(t.clientX,t.clientY);break}}},{passive:false});
+ pad.addEventListener('touchstart',e=>{e.preventDefault();if(hudEditing)return;if(activeTouch!==null)return;const t=e.changedTouches[0];activeTouch=t.identifier;setDebug('TOQUE RECEBIDO');steerAt(t.clientX,t.clientY)},{passive:false});
+ document.addEventListener('touchmove',e=>{if(hudEditing||activeTouch===null)return;for(const t of e.changedTouches){if(t.identifier===activeTouch){e.preventDefault();steerAt(t.clientX,t.clientY);break}}},{passive:false});
  document.addEventListener('touchend',e=>{for(const t of e.changedTouches){if(t.identifier===activeTouch){stopMove();break}}},{passive:false});
  document.addEventListener('touchcancel',stopMove);
 }else{
@@ -163,7 +163,7 @@ const startButton=$('start');
 if(startButton){startButton.type='button';startButton.onclick=beginAdventure;startButton.addEventListener('touchstart',beginAdventure,{capture:true,passive:false});startButton.addEventListener('touchend',beginAdventure,{capture:true,passive:false});startButton.addEventListener('pointerdown',beginAdventure,true);startButton.addEventListener('pointerup',beginAdventure,true);startButton.addEventListener('click',beginAdventure,true)}
 $('resume').addEventListener('click',e=>{e.preventDefault();if(!gameReady){say('O jogo ainda está carregando.');return}if(load()){buildIsland();updateUI();say('Jogo restaurado!')}else say('Nenhum jogo salvo encontrado.');$('menu').classList.add('hidden');$('menu').style.display='none';$('menu').style.pointerEvents='none';started=true});
 window.addEventListener('beforeunload',saveSilent);
-try{loadHud();const savedQuality=localStorage.getItem('wildshore3d_quality');if(savedQuality&&['low','medium','high'].includes(savedQuality))$('quality').value=savedQuality;init();gameReady=true}catch(err){gameReady=false;showInitError(err)}if(gameReady){try{if(load()){buildIsland();updateUI()}else updateUI()}catch(err){showInitError('Falha ao restaurar o progresso: '+String(err&&err.message||err));gameReady=true}}
+try{loadHud();const savedQuality=localStorage.getItem('wildshore3d_quality');if(savedQuality&&['low','medium','high'].includes(savedQuality))$('quality').value=savedQuality;init();gameReady=true;if(savedQuality){try{$('quality').dispatchEvent(new Event('change'))}catch(_){}}}catch(err){gameReady=false;showInitError(err)}if(gameReady){try{if(load()){buildIsland();updateUI()}else updateUI()}catch(err){showInitError('Falha ao restaurar o progresso: '+String(err&&err.message||err));gameReady=true}}
 if(gameReady&&window.__wildshoreStartRequested){window.__wildshoreStartRequested=false;beginAdventure()}
 
 })();
