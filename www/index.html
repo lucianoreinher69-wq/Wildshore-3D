@@ -166,6 +166,7 @@ document.querySelectorAll('#buildMenu [data-build]').forEach(b=>{b.onclick=e=>{e
  if(!el.dataset.created){
   el.innerHTML=list.map(t=>'<button type="button" draggable="false" id="toolBtn-'+t.key+'" data-hud-key="toolBtn-'+t.key+'" data-quick-tool="'+t.key+'" aria-label="'+t.name+'" title="'+t.name+'"><span>'+t.icon+'</span><small>'+t.name+'</small></button>').join('');
   el.dataset.created='1';
+  applyHudElements();
  }
  list.forEach(t=>{
   const b=el.querySelector('[data-quick-tool="'+t.key+'"]');if(!b)return;
@@ -189,7 +190,6 @@ document.querySelectorAll('#buildMenu [data-build]').forEach(b=>{b.onclick=e=>{e
    say(key==='none'?'Ferramenta guardada.':'Ferramenta equipada!');
   });
  }
- applyHudElements();
 }
 function playToolAction(kind){if(!state.equippedTool)return;toolActionKind=kind||state.equippedTool;toolActionTime=.0;heldToolGroups.forEach(({tool})=>{tool.rotation.set(0,0,-.08)})}
 function updateToolAction(dt){if(!toolActionKind)return;toolActionTime+=dt;const p=Math.min(1,toolActionTime/.48),swing=Math.sin(Math.PI*p);const key=state.equippedTool;let amount=key==='spear'?.58:.92;if(key==='axe'||key==='pickaxe'||key==='hammer'){heldToolGroups.forEach(({tool})=>{tool.rotation.x=-swing*amount;tool.rotation.z=-.08+swing*.12})}else if(key==='spear'){heldToolGroups.forEach(({tool})=>{tool.rotation.x=-.08;tool.rotation.z=-.08-swing*amount})}if(p>=1){heldToolGroups.forEach(({tool})=>tool.rotation.set(0,0,-.08));toolActionKind='';toolActionTime=0}}
