@@ -56,8 +56,8 @@ jobs:
           p = Path("android/app/build.gradle")
           s = p.read_text()
 
-          s, a = re.subn(r'versionCode\s+\d+', 'versionCode 168', s, count=1)
-          s, b = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.1.4"', s, count=1)
+          s, a = re.subn(r'versionCode\s+\d+', 'versionCode 169', s, count=1)
+          s, b = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.1.5"', s, count=1)
 
           if a != 1 or b != 1:
               raise SystemExit("Não foi possível atualizar a versão do aplicativo")
@@ -90,7 +90,7 @@ jobs:
               raise SystemExit("Não foi possível associar a assinatura ao release")
 
           p.write_text(s)
-          print("Versão 1.1.4 (168) e assinatura configuradas.")
+          print("Versão 1.1.5 (169) e assinatura configuradas.")
           PY
 
       - name: Force landscape orientation
