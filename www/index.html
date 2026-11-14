@@ -160,7 +160,37 @@ function openBuildMenu(){const el=$('buildMenu');if(!el)return;el.classList.remo
 function closeBuildMenu(){const el=$('buildMenu');if(el)el.classList.add('hidden')}
 $('buildMenuBtn').onclick=e=>{e.preventDefault();e.stopPropagation();openBuildMenu()};
 $('closeBuildMenu').onclick=e=>{e.preventDefault();e.stopPropagation();closeBuildMenu()};
-document.querySelectorAll('#buildMenu [data-build]').forEach(b=>{b.onclick=e=>{e.preventDefault();e.stopPropagation();const actions={shelter:buildShelter,house:openHousePartsMenu,fire:buildCampfire,collector:buildWaterCollector,raft:buildRaft};const action=actions[b.dataset.build];if(!action){say('Não foi possível iniciar esta construção.');return}closeBuildMenu();action()}});function renderToolHotbar(){const el=$('toolHotbar');if(!el)return;const list=[{key:'axe',icon:'🪓',name:'Machado'},{key:'pickaxe',icon:'⛏️',name:'Picareta'},{key:'spear',icon:'🔱',name:'Lança'},{key:'hammer',icon:'🔨',name:'Martelo'}];el.innerHTML=list.map(t=>{const owned=!!(state.tools&&state.tools[t.key]),active=state.equippedTool===t.key;return '<button type="button" draggable="false" id="toolBtn-'+t.key+'" data-hud-key="toolBtn-'+t.key+'" data-quick-tool="'+t.key+'" aria-label="'+t.name+'" title="'+t.name+'" '+(owned||hudEditing?'':'disabled')+' class="'+(active?'active':'')+'"><span>'+t.icon+'</span><small>'+(active?'Na mão':owned?'Equipar':'—')+'</small></button>'}).join('')+'<button type="button" draggable="false" id="toolBtn-none" data-hud-key="toolBtn-none" data-quick-tool="none" aria-label="Guardar ferramenta" title="Guardar ferramenta" class="'+(!state.equippedTool?'active':'')+'"><span>✋</span><small>Guardar</small></button>';if(!el.dataset.bound){el.dataset.bound='1';el.addEventListener('dragstart',e=>e.preventDefault());el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('click',e=>{const b=e.target.closest('[data-quick-tool]');if(!b||b.disabled)return;const key=b.dataset.quickTool;if(key!=='none'&&!(state.tools&&state.tools[key]))return;state.equippedTool=key==='none'?'':key;setEquippedToolVisual();saveSilent();renderInventory();say(key==='none'?'Ferramenta guardada.':'Ferramenta equipada!')})}applyHudElements()}
+document.querySelectorAll('#buildMenu [data-build]').forEach(b=>{b.onclick=e=>{e.preventDefault();e.stopPropagation();const actions={shelter:buildShelter,house:openHousePartsMenu,fire:buildCampfire,collector:buildWaterCollector,raft:buildRaft};const action=actions[b.dataset.build];if(!action){say('Não foi possível iniciar esta construção.');return}closeBuildMenu();action()}});function renderToolHotbar(){
+ const el=$('toolHotbar');if(!el)return;
+ const list=[{key:'axe',icon:'🪓',name:'Machado'},{key:'pickaxe',icon:'⛏️',name:'Picareta'},{key:'spear',icon:'🔱',name:'Lança'},{key:'hammer',icon:'🔨',name:'Martelo'},{key:'none',icon:'✋',name:'Guardar'}];
+ if(!el.dataset.created){
+  el.innerHTML=list.map(t=>'<button type="button" draggable="false" id="toolBtn-'+t.key+'" data-hud-key="toolBtn-'+t.key+'" data-quick-tool="'+t.key+'" aria-label="'+t.name+'" title="'+t.name+'"><span>'+t.icon+'</span><small>'+t.name+'</small></button>').join('');
+  el.dataset.created='1';
+ }
+ list.forEach(t=>{
+  const b=el.querySelector('[data-quick-tool="'+t.key+'"]');if(!b)return;
+  const owned=t.key==='none'||!!(state.tools&&state.tools[t.key]),active=t.key==='none'?!state.equippedTool:state.equippedTool===t.key;
+  b.disabled=!owned&&!hudEditing;b.classList.toggle('active',active);
+  const small=b.querySelector('small');if(small)small.textContent=active?(t.key==='none'?'Guardado':'Na mão'):owned?'Equipar':'—';
+ });
+ if(!el.dataset.bound){
+  el.dataset.bound='1';
+  el.addEventListener('dragstart',e=>e.preventDefault());
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+  el.addEventListener('click',e=>{
+   const b=e.target.closest('[data-quick-tool]');if(!b||!el.contains(b)||b.disabled)return;
+   const key=b.dataset.quickTool;if(key!=='none'&&!(state.tools&&state.tools[key]))return;
+   state.equippedTool=key==='none'?'':key;
+   heldToolGroups.forEach(({tool,head,pickHead,hammerHead,tip})=>{
+    const equipped=state.equippedTool;tool.visible=!!equipped;
+    head.visible=equipped==='axe';pickHead.visible=equipped==='pickaxe';hammerHead.visible=equipped==='hammer';tip.visible=equipped==='spear';
+   });
+   renderToolHotbar();saveSilent();renderInventory();
+   say(key==='none'?'Ferramenta guardada.':'Ferramenta equipada!');
+  });
+ }
+ applyHudElements();
+}
 function playToolAction(kind){if(!state.equippedTool)return;toolActionKind=kind||state.equippedTool;toolActionTime=.0;heldToolGroups.forEach(({tool})=>{tool.rotation.set(0,0,-.08)})}
 function updateToolAction(dt){if(!toolActionKind)return;toolActionTime+=dt;const p=Math.min(1,toolActionTime/.48),swing=Math.sin(Math.PI*p);const key=state.equippedTool;let amount=key==='spear'?.58:.92;if(key==='axe'||key==='pickaxe'||key==='hammer'){heldToolGroups.forEach(({tool})=>{tool.rotation.x=-swing*amount;tool.rotation.z=-.08+swing*.12})}else if(key==='spear'){heldToolGroups.forEach(({tool})=>{tool.rotation.x=-.08;tool.rotation.z=-.08-swing*amount})}if(p>=1){heldToolGroups.forEach(({tool})=>tool.rotation.set(0,0,-.08));toolActionKind='';toolActionTime=0}}
 function setEquippedToolVisual(){const key=state.equippedTool||'';if(heldToolGroups.length)heldToolGroups.forEach(({tool,head,pickHead,hammerHead,tip})=>{tool.visible=!!key;head.visible=key==='axe';pickHead.visible=key==='pickaxe';hammerHead.visible=key==='hammer';tip.visible=key==='spear'});renderToolHotbar()}
