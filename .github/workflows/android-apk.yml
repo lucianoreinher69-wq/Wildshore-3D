@@ -1,4 +1,5 @@
 name: Build Wildshore 3D Android APK
+
 on:
   workflow_dispatch:
   push:
@@ -8,31 +9,90 @@ on:
       - 'package.json'
       - 'capacitor.config.json'
       - '.github/workflows/android-apk.yml'
+
 permissions:
   contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
+
       - name: Setup Java
         uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
         with:
           distribution: temurin
           java-version: '21'
+
       - name: Install dependencies
         run: npm install
+
       - name: Bundle Three.js for offline play
         run: npm run build
+
       - name: Add Android platform
         run: npx cap add android
+
       - name: Sync web app
         run: npx cap sync android
+
+      - name: Configure signed release APK
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/wildshore-release.jks
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+
+          s, a = re.subn(r'versionCode\s+\d+', 'versionCode 164', s, count=1)
+          s, b = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.1.0"', s, count=1)
+
+          if a != 1 or b != 1:
+              raise SystemExit("Não foi possível atualizar a versão do aplicativo")
+
+          signing = '''
+              signingConfigs {
+                  release {
+                      storeFile file("wildshore-release.jks")
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                  }
+              }
+
+          '''
+
+          if "signingConfigs {" not in s:
+              s, c = re.subn(r'(\s*)buildTypes\s*\{', signing + r'\1buildTypes {', s, count=1)
+              if c != 1:
+                  raise SystemExit("Não foi possível configurar assinatura")
+
+          s, d = re.subn(
+              r'(buildTypes\s*\{\s*release\s*\{)',
+              r'\1\n            signingConfig signingConfigs.release',
+              s,
+              count=1
+          )
+
+          if d != 1:
+              raise SystemExit("Não foi possível associar a assinatura ao release")
+
+          p.write_text(s)
+          print("Versão 1.1.0 (164) e assinatura configuradas.")
+          PY
+
       - name: Force landscape orientation
         run: |
           python3 - <<'PY'
@@ -42,17 +102,22 @@ jobs:
           s = p.read_text()
           s, count = re.subn(r'<activity\b(?![^>]*android:screenOrientation=)', '<activity android:screenOrientation="landscape"', s, count=1)
           if count != 1:
-              raise SystemExit("Could not set the main Android activity to landscape")
+              raise SystemExit("Não foi possível configurar a orientação")
           p.write_text(s)
           PY
-      - name: Build debug APK
+
+      - name: Build signed release APK
         working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
+
       - name: Upload APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: Wildshore3D-Android-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
