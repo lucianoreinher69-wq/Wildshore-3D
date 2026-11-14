@@ -42,7 +42,7 @@
 #toolHotbar{background:rgba(4,15,21,.22)!important;border:1px solid rgba(220,245,250,.22)!important;box-shadow:0 2px 8px rgba(0,0,0,.18)!important;backdrop-filter:blur(2px);padding:5px!important}
 #toolHotbar button{background:rgba(8,31,40,.34)!important;border:1px solid rgba(225,246,250,.42)!important;box-shadow:0 1px 5px rgba(0,0,0,.18)!important;color:#fff;text-shadow:0 1px 3px #000}
 #toolHotbar button.active{background:rgba(179,145,54,.48)!important;border:2px solid rgba(255,224,130,.8)!important;box-shadow:0 0 0 1px rgba(255,224,130,.22)!important}
-#toolHotbar button:disabled{opacity:.38;filter:grayscale(.65)}
+#toolHotbar button:disabled{opacity:1;filter:none}#toolHotbar button.locked{opacity:1!important;filter:none!important}
 #pad{background:radial-gradient(circle,rgba(255,255,255,.09),rgba(5,25,35,.24))!important;border:1px solid rgba(220,245,250,.32)!important;box-shadow:0 2px 9px rgba(0,0,0,.16)!important;backdrop-filter:blur(2px)}
 #stick{background:linear-gradient(145deg,rgba(174,225,233,.58),rgba(23,96,120,.48))!important;border:1px solid rgba(235,252,255,.62)!important;box-shadow:0 2px 6px rgba(0,0,0,.2)!important}
 #contextAction{background:rgba(18,62,67,.48)!important;border:2px solid rgba(213,247,217,.58)!important;box-shadow:0 2px 10px rgba(0,0,0,.22)!important;backdrop-filter:blur(2px)}
@@ -171,7 +171,7 @@ document.querySelectorAll('#buildMenu [data-build]').forEach(b=>{b.onclick=e=>{e
  list.forEach(t=>{
   const b=el.querySelector('[data-quick-tool="'+t.key+'"]');if(!b)return;
   const owned=t.key==='none'||!!(state.tools&&state.tools[t.key]),active=t.key==='none'?!state.equippedTool:state.equippedTool===t.key;
-  b.disabled=!owned&&!hudEditing;b.classList.toggle('active',active);
+  b.disabled=false;b.classList.toggle('locked',!owned&&t.key!=='none');b.classList.toggle('active',active);
   const small=b.querySelector('small');if(small)small.textContent=active?(t.key==='none'?'Guardado':'Na mão'):owned?'Equipar':'—';
  });
  if(!el.dataset.bound){
@@ -180,7 +180,7 @@ document.querySelectorAll('#buildMenu [data-build]').forEach(b=>{b.onclick=e=>{e
   el.addEventListener('contextmenu',e=>e.preventDefault());
   el.addEventListener('click',e=>{
    const b=e.target.closest('[data-quick-tool]');if(!b||!el.contains(b)||b.disabled)return;
-   const key=b.dataset.quickTool;if(key!=='none'&&!(state.tools&&state.tools[key]))return;
+   const key=b.dataset.quickTool;if(key!=='none'&&!(state.tools&&state.tools[key])){say('Você ainda não possui essa ferramenta. Construa ou encontre uma primeiro.');return}
    state.equippedTool=key==='none'?'':key;
    heldToolGroups.forEach(({tool,head,pickHead,hammerHead,tip})=>{
     const equipped=state.equippedTool;tool.visible=!!equipped;
