@@ -36,21 +36,23 @@
 <div id="actions"><button id="gather">Coletar</button><button id="fishBtn">Pescar</button><button id="fireBtn">Fogueira</button><button id="cookBtn">Cozinhar</button><button id="huntBtn">Caçar</button><button id="trapBtn">Armadilha</button><button id="waterCollectorBtn">Coletor</button><button id="boilBtn">Ferver</button><button id="craft">Criar abrigo</button><button id="houseBtn">Casa</button><button id="chestBtn">Baú</button><button id="storeBtn" class="hidden">Guardar</button><button id="takeBtn" class="hidden">Retirar</button><button id="rest">Descansar</button><button id="raft">Jangada</button><button id="board" class="hidden">Embarcar</button><button id="islandBtn">Explorar ilha</button></div>
 <button id="contextAction" type="button" aria-label="Ação contextual"><span class="action-icon">✋</span><span id="contextLabel">Ação</span></button><button id="hudExit" type="button">Sair da edição do HUD</button><button id="inventoryBtn" type="button">🎒 Mochila <span id="bagCount">0</span></button><div id="inventoryPanel" class="hidden"><div class="inventory-card"><div class="inventory-head"><b>🎒 Minha mochila</b><button id="closeInventory" type="button">Fechar ✕</button></div><div class="inventory-subtitle">Toque em um alimento ou bebida para usar</div><div id="inventoryItems"></div><div class="inventory-subtitle">Ferramentas da ilha</div><div id="inventoryTools"></div><div class="inventory-subtitle">Materiais e recursos</div><div id="inventoryResources"></div></div></div><div id="help">WASD / setas para andar · aproxime-se dos recursos e toque em Coletar</div>
 </div>
-<div id="menu"><div class="box"><h1>WILDSHORE 3D</h1><b>Sobreviva. Explore. Construa.</b><p>Explore ilhas tropicais, colete recursos, cuide das necessidades e construa seu abrigo. O progresso é salvo automaticamente.</p><button id="start" type="button" onclick="window.wildshoreStart(event)">Iniciar aventura</button><button id="resume">Continuar jogo salvo</button><p><small>Recomendado jogar na horizontal. Use o analógico na tela ou WASD.</small></p></div></div>
+<div id="menu"><div class="box"><h1>WILDSHORE 3D</h1><b>Sobreviva. Explore. Construa.</b><p>Explore ilhas tropicais, colete recursos, cuide das necessidades e construa seu abrigo. O progresso é salvo automaticamente.</p><button id="start" type="button" onclick="window.wildshoreStart(event)">Iniciar aventura</button><p id="startStatus" style="min-height:18px;margin:8px 0;color:#ffd58a;font-size:12px" aria-live="polite"></p><button id="resume">Continuar jogo salvo</button><p><small>Recomendado jogar na horizontal. Use o analógico na tela ou WASD.</small></p></div></div>
 <script>
 window.__wildshoreStartRequested=false;
 window.wildshoreStart=function(e){
   if(e){if(e.cancelable)e.preventDefault();e.stopPropagation()}
+  var status=document.getElementById('startStatus');
+  if(status)status.textContent='Iniciando...';
   if(typeof window.beginAdventure==='function'){window.beginAdventure(e);return}
   window.__wildshoreStartRequested=true;
-  var menu=document.getElementById('menu');
-  var message=document.getElementById('message');
-  if(message)message.textContent='Preparando sua aventura...';
-  if(menu){menu.style.pointerEvents='auto'}
+  if(status)status.textContent='O motor ainda está carregando. Aguarde um instante e toque novamente.';
 };
 window.addEventListener('error',function(e){
   var message=document.getElementById('message');
-  if(message)message.textContent='Erro ao carregar o jogo: '+(e.message||'falha no JavaScript');
+  var status=document.getElementById('startStatus');
+  var detail=(e.message||'falha no JavaScript');
+  if(message)message.textContent='Erro ao carregar o jogo: '+detail;
+  if(status)status.textContent='Falha ao carregar: '+detail;
 });
 </script>
 <script src="vendor/three.min.js"></script>
@@ -197,10 +199,10 @@ window.addEventListener('keydown',e=>{if(['w','a','s','d','ArrowUp','ArrowDown',
 window.addEventListener('keyup',e=>{if(keys[e.key]){keys[e.key]=false;updateKeys()}});
 
 function beginAdventure(e){if(e){if(e.cancelable)e.preventDefault();e.stopPropagation()}if(started)return;if(!gameReady){showInitError('O motor do jogo não terminou de iniciar. Confira a mensagem de diagnóstico e recarregue.');return}started=true;const menu=$('menu');if(menu){menu.classList.add('hidden');menu.style.display='none';menu.style.visibility='hidden';menu.style.pointerEvents='none'}try{updateUI();say('Aventura iniciada! Explore a ilha.')}catch(err){showInitError(err)}setDebug('JOGO INICIADO — toque no analógico')}
-function showInitError(err){const detail=String(err&&err.message||err||'Erro desconhecido');const debug=$('debug'),message=$('message'),menu=$('menu');if(debug){debug.style.setProperty('display','block','important');debug.textContent='ERRO AO INICIAR: '+detail}if(message)message.textContent='Não foi possível carregar o jogo. Recarregue e tente novamente.';if(menu){menu.classList.remove('hidden');menu.style.display='flex';menu.style.visibility='visible';menu.style.pointerEvents='auto'}if(window.console&&console.error)console.error('Wildshore initialization error',err)}
+function showInitError(err){const detail=String(err&&err.message||err||'Erro desconhecido');const debug=$('debug'),message=$('message'),menu=$('menu'),status=$('startStatus');if(debug){debug.style.setProperty('display','block','important');debug.textContent='ERRO AO INICIAR: '+detail}if(message)message.textContent='Não foi possível carregar o jogo. Recarregue e tente novamente.';if(status)status.textContent='Erro ao iniciar: '+detail;if(menu){menu.classList.remove('hidden');menu.style.display='flex';menu.style.visibility='visible';menu.style.pointerEvents='auto'}if(window.console&&console.error)console.error('Wildshore initialization error',err)}
 window.beginAdventure=beginAdventure;
 const startButton=$('start');
-if(startButton){startButton.type='button';startButton.onclick=beginAdventure;startButton.addEventListener('touchstart',beginAdventure,{capture:true,passive:false});startButton.addEventListener('touchend',beginAdventure,{capture:true,passive:false});startButton.addEventListener('pointerdown',beginAdventure,true);startButton.addEventListener('pointerup',beginAdventure,true);startButton.addEventListener('click',beginAdventure,true)}
+if(startButton){startButton.type='button';startButton.onclick=window.wildshoreStart}
 $('resume').addEventListener('click',e=>{e.preventDefault();if(!gameReady){say('O jogo ainda está carregando.');return}if(load()){buildIsland();updateUI();say('Jogo restaurado!')}else say('Nenhum jogo salvo encontrado.');$('menu').classList.add('hidden');$('menu').style.display='none';$('menu').style.pointerEvents='none';started=true});
 window.addEventListener('beforeunload',saveSilent);
 try{loadHud();const savedQuality=localStorage.getItem('wildshore3d_quality');if(savedQuality&&['low','medium','high'].includes(savedQuality))$('quality').value=savedQuality;init();gameReady=true;if(savedQuality){try{$('quality').dispatchEvent(new Event('change'))}catch(_){}}}catch(err){gameReady=false;showInitError(err)}if(gameReady){try{if(load()){buildIsland();updateUI()}else updateUI()}catch(err){showInitError('Falha ao restaurar o progresso: '+String(err&&err.message||err));gameReady=true}}
