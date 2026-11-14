@@ -56,8 +56,8 @@ jobs:
           p = Path("android/app/build.gradle")
           s = p.read_text()
 
-          s, a = re.subn(r'versionCode\s+\d+', 'versionCode 177', s, count=1)
-          s, b = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.2.3"', s, count=1)
+          s, a = re.subn(r'versionCode\s+\d+', 'versionCode 178', s, count=1)
+          s, b = re.subn(r'versionName\s+["\'][^"\']+["\']', 'versionName "1.2.4"', s, count=1)
 
           if a != 1 or b != 1:
               raise SystemExit("Não foi possível atualizar a versão do aplicativo")
