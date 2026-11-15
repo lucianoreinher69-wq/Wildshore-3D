@@ -165,7 +165,7 @@ function openBuildMenu(){const el=$('buildMenu');if(!el)return;selectedBuildType
 function closeBuildMenu(){const el=$('buildMenu');if(el)el.classList.add('hidden')}
 $('buildMenuBtn').onclick=e=>{e.preventDefault();e.stopPropagation();openBuildMenu()};
 $('closeBuildMenu').onclick=e=>{e.preventDefault();e.stopPropagation();closeBuildMenu()};
-document.querySelectorAll('#buildMenu [data-build]').forEach(b=>{b.onclick=e=>{e.preventDefault();e.stopPropagation();selectedBuildType=b.dataset.build;beginBuildPlacement(selectedBuildType)}});$('buildMenu').addEventListener('click',e=>{const b=e.target.closest('#buildMenu [data-build]');if(!b)return;e.preventDefault();e.stopPropagation();selectedBuildType=b.dataset.build;document.querySelectorAll('#buildMenu [data-build]').forEach(item=>item.classList.toggle('selected',item===b));beginBuildPlacement(selectedBuildType)},true);function renderToolHotbar(){
+$('buildMenu').addEventListener('click',e=>{const b=e.target.closest('#buildMenu [data-build]');if(!b)return;e.preventDefault();e.stopPropagation();selectedBuildType=b.dataset.build;document.querySelectorAll('#buildMenu [data-build]').forEach(item=>item.classList.toggle('selected',item===b));beginBuildPlacement(selectedBuildType)},true);function renderToolHotbar(){
  const el=$('toolHotbar');if(!el)return;
  const list=[{key:'axe',icon:'🪓',name:'Machado'},{key:'pickaxe',icon:'⛏️',name:'Picareta'},{key:'spear',icon:'🔱',name:'Lança'},{key:'hammer',icon:'🔨',name:'Martelo'},{key:'none',icon:'✋',name:'Guardar'}];
  if(!el.dataset.created){
