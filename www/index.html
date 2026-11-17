@@ -114,7 +114,7 @@ window.addEventListener('error',function(e){
 });
 </script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<script type="module">import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';window.__wildshoreGLTFLoaderReady=Promise.resolve(GLTFLoader);</script>
+<script>window.__wildshoreGLTFLoaderReady=import('three/addons/loaders/GLTFLoader.js').then(module=>module.GLTFLoader);</script>
 <script src="vendor/three.min.js"></script>
 <script>
 (()=>{'use strict';
@@ -249,7 +249,7 @@ function setWildshorePlayerMotion(moving,intensity=0){
 }
 function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArms){
  const ready=window.__wildshoreGLTFLoaderReady;
- if(!ready||typeof ready.then!=='function')return;
+ if(!ready||typeof ready.then!=='function'){console.error('Wildshore: GLTFLoader não foi inicializado.');return;}
  ready.then(GLTFLoader=>{
   const loader=new GLTFLoader();
   loader.setCrossOrigin('anonymous');
@@ -286,7 +286,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     tool.rotation.set(0,0,-Math.PI/2);
     tool.scale.setScalar(.82);
    }
-  },undefined,error=>{console.warn('Wildshore: não foi possível carregar o modelo humano 3D.',error)});
+  },undefined,error=>{console.error('Wildshore: falha ao baixar ou interpretar o modelo 3D; mantendo o personagem de segurança.',error)});
  }).catch(error=>console.warn('Wildshore: carregador GLB indisponível.',error));
 }
 let selectedBuildType='';let placementBuildType='',placementPreview=null,placementPoint=null;
