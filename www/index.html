@@ -238,6 +238,7 @@ function createPlayerCharacter(){
  firstPersonArms=arms.map((arm,i)=>{const view=arm.clone(true);view.position.set(i===0?-.38:.38,-.32,-.72);view.rotation.set(-.18,0,i===0?-.12:.12);view.scale.setScalar(1.12);camera.add(view);return view});
  heldToolGroups=[arms[1],firstPersonArms[1]].map((parent,index)=>{const firstPerson=index===1,tool=new THREE.Group(),woodMat=mat(0x80502d),stoneMat=mat(0x87949a),metalMat=mat(0xb8c4c8);tool.position.set(0,firstPerson?.58:-.02,firstPerson?-.12:0);tool.rotation.set(0,0,-.08);const handle=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.72,7),woodMat);handle.rotation.z=-.18;handle.position.set(0,firstPerson?-.48:-.96,.04);tool.add(handle);const head=new THREE.Mesh(new THREE.BoxGeometry(.34,.16,.12),stoneMat);head.position.set(.08,firstPerson?-.17:-.64,.04);tool.add(head);const pickHead=new THREE.Mesh(new THREE.BoxGeometry(.42,.09,.1),metalMat);pickHead.position.set(.06,firstPerson?-.16:-.63,.04);pickHead.visible=false;tool.add(pickHead);const hammerHead=new THREE.Group();const hammerFace=new THREE.Mesh(new THREE.BoxGeometry(.28,.16,.17),metalMat);hammerHead.add(hammerFace);const hammerClaw=new THREE.Mesh(new THREE.BoxGeometry(.13,.10,.15),metalMat);hammerClaw.position.x=-.19;hammerHead.add(hammerClaw);hammerHead.position.set(.08,firstPerson?-.17:-.64,.04);hammerHead.visible=false;tool.add(hammerHead);const tip=new THREE.Mesh(new THREE.ConeGeometry(.075,.24,7),stoneMat);tip.rotation.x=Math.PI/2;tip.position.set(0,firstPerson?-.72:-1.31,.04);tip.visible=false;tool.add(tip);parent.add(tool);return {tool,head,pickHead,hammerHead,tip}});setEquippedToolVisual();
  loadWildshoreCharacterModel(g,torso,legs,arms);
+ g.scale.setScalar(.89);
  return g;
 }
 function setWildshorePlayerMotion(moving,intensity=0){
@@ -258,7 +259,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
    model.traverse(obj=>{if(obj.isMesh){obj.frustumCulled=true;obj.castShadow=true;obj.receiveShadow=true}});
    let bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
    if(!Number.isFinite(size.y)||size.y<.25)throw new Error('Altura inválida no modelo 3D');
-   model.scale.setScalar(1.58/size.y);
+   model.scale.setScalar(1.78/size.y);
    bounds.setFromObject(model);
    model.position.x-=(bounds.min.x+bounds.max.x)*.5;
    model.position.y-=bounds.min.y;
