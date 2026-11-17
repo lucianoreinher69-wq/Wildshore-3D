@@ -224,7 +224,7 @@ function createPlayerCharacter(){
   add(new THREE.SphereGeometry(.105,9,7),shirtShade,0,-.245,0,1,.8,.95,arm);
   add(new THREE.CapsuleGeometry(.083,.25,5,8),skin,0,-.43,.005,1,1,.9,arm);
   add(new THREE.SphereGeometry(.078,8,7),skin,0,-.59,.008,.95,1,.92,arm);
-  add(new THREE.BoxGeometry(.17,.055,.12),glove,0,-.635,.015);
+  add(new THREE.BoxGeometry(.17,.055,.12),glove,0,-.635,.015,1,1,1,arm);
   add(new THREE.SphereGeometry(.09,9,7),glove,0,-.69,.025,1,.82,1.12,arm);
   for(let finger=0;finger<4;finger++)add(new THREE.CapsuleGeometry(.018,.055,3,5),glove,(finger-1.5)*.035,-.735,.075,1,1,1,arm);
   g.add(arm);arms.push(arm);
