@@ -437,7 +437,28 @@ const radius=box.getBoundingSphere(new THREE.Sphere()).radius;
 const tolerance=Math.max(1.0,Math.min(2.5,radius*.65));
 if(center.distanceTo(closest)<=tolerance&&along<aimBest){best=r;aimBest=along;}
 }
-return best;
+if(best)return best;
+// Pequenos recursos podem não cruzar o raio central da mira. Permite
+// selecionar um item recolhível próximo e à frente do jogador.
+if(handOnly){
+ const forward=new THREE.Vector3();
+ camera.getWorldDirection(forward);
+ forward.y=0;
+ if(forward.lengthSq()>0)forward.normalize();
+ let nearBest=null,nearScore=Infinity;
+ for(const r of resources){
+  if((r.type==='wood'&&state.equippedTool!=='axe')||(r.type==='stone'&&state.equippedTool!=='pickaxe'))continue;
+  const dx=r.x-player.position.x,dz=r.z-player.position.z;
+  const d=Math.hypot(dx,dz);
+  if(d>5.2||d<0.25)continue;
+  const dot=(dx*forward.x+dz*forward.z)/d;
+  if(dot<0.35)continue;
+  const score=d+(1-dot)*2.2;
+  if(score<nearScore){nearScore=score;nearBest=r;}
+ }
+ if(nearBest)return nearBest;
+}
+return null;
 }
 function nearestFish(maxDistance=58){if(!player)return null;let target=null,best=maxDistance;for(const a of animals){if(a.type!=='fish')continue;const d=Math.hypot(player.position.x-a.obj.position.x,player.position.z-a.obj.position.z);if(d<best){best=d;target=a}}return target}
 function setContextAction(icon,label,handler,enabled=true){const b=$('contextAction');if(!b)return;b.querySelector('.action-icon').textContent=icon;$('contextLabel').textContent=label;b.disabled=!enabled;b.onclick=handler||null;b.style.display=handler?'flex':'none'}
