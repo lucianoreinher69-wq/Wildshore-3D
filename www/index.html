@@ -458,6 +458,17 @@ if(handOnly){
   if(score<nearScore){nearScore=score;nearBest=r;}
  }
  if(nearBest)return nearBest;
+ // Com a picareta equipada, facilita selecionar pedras próximas:
+ // a rocha pode ficar abaixo do centro da mira na câmera em terceira pessoa.
+ if(state.equippedTool==='pickaxe'){
+  let rockBest=null,rockDistance=Infinity;
+  for(const r of resources){
+   if(r.type!=='stone')continue;
+   const d=Math.hypot(r.x-player.position.x,r.z-player.position.z);
+   if(d<=6.5&&d<rockDistance){rockBest=r;rockDistance=d;}
+  }
+  if(rockBest)return rockBest;
+ }
 }
 return null;
 }
