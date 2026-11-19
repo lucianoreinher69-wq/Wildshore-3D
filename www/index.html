@@ -429,7 +429,7 @@ function playToolAction(kind){if(!state.equippedTool)return;toolActionKind=kind|
 function updateToolAction(dt){
  if(!toolActionKind)return;
  toolActionTime+=dt;
- const duration=toolActionKind==='spear'?.62:.72,p=Math.min(1,toolActionTime/duration),ease=Math.sin(Math.PI*p),key=state.equippedTool;
+ const key=state.equippedTool,duration=key==='spear'?.62:.72,p=Math.min(1,toolActionTime/duration),ease=Math.sin(Math.PI*p);
  let shoulderX=0,shoulderZ=0,elbowX=0,toolX=0,toolZ=-.08;
  if(key==='axe'){shoulderX=-.72*ease;shoulderZ=-.28*ease;elbowX=-.48*ease;toolX=-1.02*ease;toolZ=-.08+.16*ease}
  else if(key==='pickaxe'){shoulderX=-.9*ease;shoulderZ=-.12*ease;elbowX=-.62*ease;toolX=-1.18*ease;toolZ=-.04}
