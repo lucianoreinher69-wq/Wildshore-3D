@@ -382,7 +382,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     let bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
     if(!Number.isFinite(size.y)||size.y<.25)throw new Error('Altura inválida no modelo 3D: '+size.y);
     const rootScale=Math.abs(root.scale.y)||1;
-    model.scale.setScalar(1.78/(size.y*rootScale));
+    model.scale.setScalar(.43/(size.y*rootScale));
     bounds.setFromObject(model);
     model.position.x-=(bounds.min.x+bounds.max.x)*.5;
     model.position.y-=bounds.min.y;
