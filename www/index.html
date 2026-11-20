@@ -362,11 +362,17 @@ function createPlayerCharacter(){
  return g;
 }
 function setWildshorePlayerMotion(moving,intensity=0){
- const next=moving?(intensity>.82&&playerRunAction?playerRunAction:playerWalkAction):(playerIdleAction||null);
- if(next===playerActiveAction)return;
- if(next){next.enabled=true;next.setEffectiveWeight(1);next.setEffectiveTimeScale(moving?1:(playerIdleAction===next?.22:1));if(!next.isRunning())next.reset().play();if(playerActiveAction&&playerActiveAction!==next)next.crossFadeFrom(playerActiveAction,.2,false)}
- else if(playerActiveAction)playerActiveAction.fadeOut(.18);
- playerActiveAction=next;
+ const next=moving?(intensity>.82&&playerRunAction?playerRunAction:playerWalkAction):playerIdleAction;
+ if(next===playerActiveAction){
+  if(next){next.enabled=true;next.setEffectiveWeight(1);next.setEffectiveTimeScale(moving?1:.35);if(!next.isRunning())next.play()}
+  return;
+ }
+ if(playerActiveAction){
+  if(next)next.crossFadeFrom(playerActiveAction,.16,false);
+  else{playerActiveAction.stop();playerActiveAction.enabled=false;playerActiveAction.setEffectiveWeight(0)}
+ }
+ playerActiveAction=next||null;
+ if(next){next.reset();next.enabled=true;next.setEffectiveWeight(1);next.setEffectiveTimeScale(moving?1:.35);next.play()}
 }
 function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArms){
  const modelPath='./assets/characters/camper_rigged_animated.glb';
@@ -414,7 +420,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     const clips=gltf.animations||[];
     const walk=clips.find(clip=>/walk/i.test(clip.name));
     const run=clips.find(clip=>/run/i.test(clip.name));
-    const idle=clips.find(clip=>/idle|stand|rest|breath/i.test(clip.name))||clips.find(clip=>!(/walk|run/i.test(clip.name)))||clips[0];
+    const idle=clips.find(clip=>/idle|stand|rest|breath/i.test(clip.name));
     playerIdleAction=idle?playerMixer.clipAction(idle):null;
     playerWalkAction=walk?playerMixer.clipAction(walk):null;
     playerRunAction=run?playerMixer.clipAction(run):playerWalkAction;
