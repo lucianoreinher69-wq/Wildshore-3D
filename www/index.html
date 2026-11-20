@@ -347,30 +347,40 @@ function setWildshorePlayerMotion(moving,intensity=0){
  playerActiveAction=next;
 }
 function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArms){
+ const modelPath='./assets/characters/camper_rigged_animated.glb';
+ const report=(detail)=>{
+  const status=$('startStatus'),message=$('message');
+  if(status)status.textContent=detail;
+  if(message)message.textContent=detail;
+  setDebug('PERSONAGEM 3D: '+detail);
+ };
  const ready=window.__wildshoreGLTFLoaderReady;
  let settled=false;
- let fallbackTimer=setTimeout(()=>useFallback(new Error('Tempo limite ao carregar personagem local; usando personagem de segurança.')),15000);
+ let fallbackTimer=setTimeout(()=>useFallback(new Error('Tempo limite de 15 segundos ao abrir '+modelPath)),15000);
  const useFallback=error=>{
   if(settled)return;
   settled=true;clearTimeout(fallbackTimer);
   playerModelFailed=true;playerModelReady=true;
-  console.warn('Wildshore: personagem remoto indisponível; usando personagem local.',error);
+  const detail=String(error&&error.message||error||window.__wildshoreGLTFLoaderError||'erro desconhecido');
+  report('ERRO no personagem 3D: '+detail+' | Arquivo: '+modelPath+' | O jogo usará o boneco provisório.');
+  console.error('Wildshore: falha real ao carregar o modelo 3D.',error);
   continuePendingSession();
  };
+ report('Carregando modelo 3D local...');
  if(!ready||typeof ready.then!=='function'){useFallback(new Error('GLTFLoader não foi inicializado'));return}
  ready.then(GLTFLoader=>{
   if(settled)return;
   const loader=new GLTFLoader();
   loader.setCrossOrigin('anonymous');
-  loader.load('./assets/characters/camper_rigged_animated.glb',gltf=>{
+  loader.load(modelPath,gltf=>{
    if(settled)return;
    try{
     const model=gltf.scene;
-    model.traverse(obj=>{if(obj.isMesh){obj.frustumCulled=true;obj.castShadow=true;obj.receiveShadow=true}});
+    let meshCount=0,boneCount=0;
+    model.traverse(obj=>{if(obj.isMesh){meshCount++;obj.visible=true;obj.frustumCulled=false;obj.castShadow=true;obj.receiveShadow=true}if(obj.isBone)boneCount++});
+    if(!meshCount)throw new Error('O arquivo abriu, mas não contém malhas 3D visíveis');
     let bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
-    if(!Number.isFinite(size.y)||size.y<.25)throw new Error('Altura inválida no modelo 3D');
-    // The imported rig is inside a scaled player root. Compensate for that
-    // scale so its final world height remains 1.78m instead of becoming ~0.43m.
+    if(!Number.isFinite(size.y)||size.y<.25)throw new Error('Altura inválida no modelo 3D: '+size.y);
     const rootScale=Math.abs(root.scale.y)||1;
     model.scale.setScalar(1.78/(size.y*rootScale));
     bounds.setFromObject(model);
@@ -392,14 +402,12 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     rightForearm=findBone([/^mixamorigrightforearm$/, /^rightforearm$/, /^forearmright$/, /^rightlowerarm$/, /^lowerarmright$/]);
     rightArm=findBone([/^mixamorigrightarm$/, /^rightarm$/, /^armright$/, /^upperarmright$/, /^rightshoulder$/]);
     toolArmRig=rightArm?[{upper:rightArm,lower:rightForearm,baseUpper:rightArm.rotation.clone(),baseLower:rightForearm?rightForearm.rotation.clone():null}]:[];
+    fallbackTorso.visible=false;
+    fallbackLegs.forEach(part=>part.visible=false);
     if(rightHand&&heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
-     // Hide the complete geometric placeholder: otherwise its torso and legs remain visible
-     // underneath the downloaded camper and make the old character appear to persist.
-     fallbackTorso.visible=false;
-     fallbackLegs.forEach(part=>part.visible=false);
      fallbackArms.forEach(part=>part.visible=false);
-     fallbackArms[1].remove(tool);
+     if(fallbackArms[1])fallbackArms[1].remove(tool);
      rightHand.add(tool);
      tool.position.set(.015,-.055,.025);
      tool.rotation.set(-.08,0,-.12);
@@ -407,19 +415,19 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      tool.userData.thirdPersonHolder=rightHand;
      walkRig=null;
     }else{
-     // The downloaded rig has no recognized right hand: show only the local tool arm as a safe fallback.
-     fallbackTorso.visible=false;
-     fallbackLegs.forEach(part=>part.visible=false);
      fallbackArms.forEach((part,index)=>{part.visible=index===1});
      walkRig=walkRig||null;
-     console.warn('Wildshore: mão direita não identificada no rig; mantendo apenas o braço e a ferramenta locais.');
+     console.warn('Wildshore: mão direita não identificada no rig; mantendo braço local. Ossos encontrados:',bones.map(b=>b.name));
     }
     settled=true;clearTimeout(fallbackTimer);
-    playerModelReady=true;
+    playerModelFailed=false;playerModelReady=true;
+    report('Personagem 3D carregado: '+meshCount+' malhas, '+boneCount+' ossos e '+clips.length+' animações.');
     setWildshorePlayerMotion(false);
     continuePendingSession();
    }catch(error){useFallback(error)}
-  },undefined,useFallback);
+  },progress=>{
+   if(progress&&progress.total)report('Baixando personagem 3D: '+Math.round(progress.loaded/progress.total*100)+'%');
+  },error=>useFallback(new Error('Falha ao ler '+modelPath+': '+String(error&&error.message||error||'erro HTTP ou arquivo inválido'))));
  }).catch(useFallback);
 }
 let selectedBuildType='';let placementBuildType='',placementPreview=null,placementPoint=null;
