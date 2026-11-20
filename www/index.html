@@ -319,9 +319,15 @@ function createPlayerCharacter(){
  const cuttingEdge=new THREE.Mesh(new THREE.ShapeGeometry(cuttingEdgeShape),stoneEdgeMat);cuttingEdge.position.z=.078;head.add(cuttingEdge);
  const axeBindingMat=new THREE.MeshStandardMaterial({color:0xb99a69,roughness:1});
  const fiberDark=new THREE.MeshStandardMaterial({color:0x705039,roughness:1});
- for(let n=0;n<7;n++){const wrap=new THREE.Mesh(new THREE.TorusGeometry(.052,.008,5,12),axeBindingMat);wrap.rotation.x=Math.PI/2;wrap.position.set(.035,-.075+n*.026,.04);head.add(wrap)}
- const tieA=new THREE.Mesh(new THREE.CylinderGeometry(.009,.009,.17,6),fiberDark);tieA.rotation.z=.48;tieA.position.set(.04,-.015,.09);head.add(tieA);
- const tieB=tieA.clone();tieB.rotation.z=-.48;tieB.position.y=-.07;head.add(tieB);
+ // Machado primitivo: duas talas de madeira paralelas, uma em cada face da pedra.
+ const axeWoodA=new THREE.Mesh(new THREE.BoxGeometry(.19,.48,.075),woodGrip);
+ axeWoodA.position.set(-.015,-.005,.112);axeWoodA.rotation.z=-.13;head.add(axeWoodA);
+ const axeWoodB=axeWoodA.clone();axeWoodB.position.z=-.112;head.add(axeWoodB);
+ // A pedra fica prensada no meio das duas madeiras; fibra cruza e aperta o conjunto.
+ for(let n=0;n<5;n++){const wrap=new THREE.Mesh(new THREE.TorusGeometry(.058,.009,6,14),axeBindingMat);wrap.rotation.x=Math.PI/2;wrap.position.set(.005,-.105+n*.045,0);head.add(wrap)}
+ const tieA=new THREE.Mesh(new THREE.CylinderGeometry(.009,.009,.25,7),fiberDark);tieA.rotation.z=.52;tieA.position.set(.025,-.005,.015);head.add(tieA);
+ const tieB=tieA.clone();tieB.rotation.z=-.52;tieB.position.set(.025,-.055,-.015);head.add(tieB);
+ const tieC=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.22,7),axeBindingMat);tieC.rotation.x=Math.PI/2;tieC.position.set(.02,-.07,0);head.add(tieC);
  tool.add(head);
  const pickHead=new THREE.Group();pickHead.position.set(.06,topY,.04);
  const pickBody=new THREE.Mesh(new THREE.BoxGeometry(.16,.12,.13),woodCut);pickHead.add(pickBody);
@@ -342,11 +348,12 @@ function createPlayerCharacter(){
  for(let grain=0;grain<5;grain++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.184,.006,5,16),grain%2?malletDark:malletEnd);ring.rotation.y=Math.PI/2;ring.position.x=(grain-2)*.085;hammerHead.add(ring)}
  const malletBinding=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),axeBindingMat);malletBinding.rotation.x=Math.PI/2;malletBinding.position.set(0,-.02,.015);hammerHead.add(malletBinding);
  hammerHead.visible=false;tool.add(hammerHead);
- const spearHead=new THREE.Group();spearHead.position.set(0,topY-.19,.04);
- const spearPoint=new THREE.Mesh(new THREE.ConeGeometry(.075,.34,8),woodHighlight);spearPoint.position.y=.18;spearHead.add(spearPoint);
- const spearBase=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.12,10),woodCut);spearBase.position.y=-.015;spearHead.add(spearBase);
- const spearWrapA=new THREE.Mesh(new THREE.CylinderGeometry(.042,.042,.045,10),woodGrip);spearWrapA.position.y=-.105;spearHead.add(spearWrapA);
- const spearWrapB=new THREE.Mesh(new THREE.CylinderGeometry(.042,.042,.045,10),woodGrip);spearWrapB.position.y=-.165;spearHead.add(spearWrapB);
+ const spearHead=new THREE.Group();spearHead.position.set(0,topY,.04);spearHead.rotation.z=-.18;
+ // Ponta no mesmo eixo inclinado do cabo, encaixada sobre a extremidade e não na lateral.
+ const spearPoint=new THREE.Mesh(new THREE.ConeGeometry(.055,.34,8),woodHighlight);spearPoint.position.y=.17;spearHead.add(spearPoint);
+ const spearBase=new THREE.Mesh(new THREE.CylinderGeometry(.034,.04,.12,10),woodCut);spearBase.position.y=-.025;spearHead.add(spearBase);
+ const spearWrapA=new THREE.Mesh(new THREE.CylinderGeometry(.039,.039,.035,10),woodGrip);spearWrapA.position.y=-.095;spearHead.add(spearWrapA);
+ const spearWrapB=new THREE.Mesh(new THREE.CylinderGeometry(.039,.039,.035,10),woodGrip);spearWrapB.position.y=-.14;spearHead.add(spearWrapB);
  spearHead.visible=false;tool.add(spearHead);
  parent.add(tool);return {tool,head,pickHead,hammerHead,tip:spearHead};
 });setEquippedToolVisual();;
@@ -423,16 +430,19 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     if(handHolder&&heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
      if(tool.parent)tool.parent.remove(tool);
-     fallbackArms.forEach(part=>part.visible=false);
+     // Anexa ao osso direito e mantém a ferramenta fora do braço provisório.
      handHolder.add(tool);
      tool.position.set(rightHand?0.015:0.035,rightHand?.64:rightForearm?.34:.12,.025);
      tool.rotation.set(-.08,0,-.12);
-     tool.scale.setScalar(1.2);
-     tool.visible=!!state.equippedTool;
-     tool.traverse(part=>{if(part.isMesh){part.visible=true;part.frustumCulled=false}});
+     tool.scale.setScalar(1.65);
+     tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
+     tool.traverse(part=>{if(part.isMesh){part.visible=true;part.frustumCulled=false;part.renderOrder=20}});
      tool.userData.thirdPersonHolder=handHolder;
+     fallbackArms.forEach(part=>part.visible=false);
      walkRig=null;
+     console.info('Wildshore: ferramenta de terceira pessoa ligada ao osso',handHolder.name,'| mão:',rightHand&&rightHand.name,'| antebraço:',rightForearm&&rightForearm.name);
     }else{
+     // Não esconder os braços se o rig não oferecer um osso de mão utilizável.
      fallbackArms.forEach((part,index)=>{part.visible=index===1});
      walkRig=walkRig||null;
      console.warn('Wildshore: mão direita não identificada no rig; mantendo braço local. Ossos encontrados:',bones.map(b=>b.name));
@@ -514,7 +524,7 @@ function updateToolAction(dt){
  heldToolGroups.forEach(({tool},index)=>{tool.rotation.x=toolX;tool.rotation.z=toolZ;tool.position.z=(tool.userData.baseZ||0)+(key==='spear'?(index===0?toolReach:-toolReach):0)});
  if(p>=1){if(walkRig&&walkRig.arms&&walkRig.arms[1]){walkRig.arms[1].shoulder.rotation.set(0,0,0);walkRig.arms[1].elbow.rotation.set(0,0,0)}for(const rig of toolArmRig){if(rig.upper&&rig.baseUpper)rig.upper.rotation.copy(rig.baseUpper);if(rig.lower&&rig.baseLower)rig.lower.rotation.copy(rig.baseLower)}heldToolGroups.forEach(({tool})=>tool.rotation.set(0,0,-.08));toolActionKind='';toolActionTime=0}
 }
-function setEquippedToolVisual(){const key=state.equippedTool||'';if(heldToolGroups.length)heldToolGroups.forEach(({tool,head,pickHead,hammerHead,tip},index)=>{const correctView=state.cameraMode==='first'?index===1:index===0;tool.visible=!!key&&correctView;head.visible=key==='axe';pickHead.visible=key==='pickaxe';hammerHead.visible=key==='hammer';tip.visible=key==='spear'});renderToolHotbar()}
+function setEquippedToolVisual(){const key=state.equippedTool||'';if(heldToolGroups.length)heldToolGroups.forEach(({tool,head,pickHead,hammerHead,tip},index)=>{const correctView=state.cameraMode==='first'?index===1:index===0;const attached=!!tool.userData.thirdPersonHolder;tool.visible=!!key&&correctView;if(attached&&index===0)tool.visible=!!key&&state.cameraMode!=='first';head.visible=key==='axe';pickHead.visible=key==='pickaxe';hammerHead.visible=key==='hammer';tip.visible=key==='spear';tool.traverse(part=>{if(part.isMesh){part.visible=true;part.frustumCulled=false}})});renderToolHotbar()}
 function createStarfield(){const positions=[],colors=[],radius=4200;const bandNormal=new THREE.Vector3(.58,.48,-.66).normalize();const axisA=new THREE.Vector3().crossVectors(bandNormal,new THREE.Vector3(0,1,0)).normalize();const axisB=new THREE.Vector3().crossVectors(bandNormal,axisA).normalize();for(let i=0;i<1900;i++){let d;if(i<620){const a=Math.random()*Math.PI*2,w=(Math.random()-.5)*.13;d=axisA.clone().multiplyScalar(Math.cos(a)).add(axisB.clone().multiplyScalar(Math.sin(a))).add(bandNormal.clone().multiplyScalar(w)).normalize()}else{const y=Math.random()*1.8-.9,a=Math.random()*Math.PI*2,r=Math.sqrt(1-y*y);d=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r)}positions.push(d.x*radius,d.y*radius,d.z*radius);const bright=.45+Math.random()*.55;colors.push(bright,bright*(.94+Math.random()*.06),bright*(.82+Math.random()*.18))}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));starMaterial=new THREE.PointsMaterial({size:2.1,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,depthWrite:false,fog:false});starField=new THREE.Points(geo,starMaterial);starField.frustumCulled=false;scene.add(starField)}
 function createCelestialBodies(){createStarfield();const sunGroup=new THREE.Group();const sunCore=new THREE.Mesh(new THREE.SphereGeometry(4.1,24,18),new THREE.MeshBasicMaterial({color:0xffe7a1,fog:false}));sunGroup.add(sunCore);const sunGlow=new THREE.Mesh(new THREE.SphereGeometry(6.4,20,14),new THREE.MeshBasicMaterial({color:0xffc66d,transparent:true,opacity:.18,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));sunGroup.add(sunGlow);scene.add(sunGroup);sunVisual=sunGroup;const moonGroup=new THREE.Group();const moonCore=new THREE.Mesh(new THREE.SphereGeometry(3.15,24,18),new THREE.MeshStandardMaterial({color:0xe4e9ef,emissive:0x53627d,emissiveIntensity:.42,roughness:1,fog:false}));moonGroup.add(moonCore);const shadow=new THREE.Mesh(new THREE.SphereGeometry(3.22,24,18),new THREE.MeshBasicMaterial({color:0x071323,fog:false}));moonGroup.add(shadow);moonShadow=shadow;scene.add(moonGroup);moonVisual=moonGroup;}
 function init(){scene=new THREE.Scene();scene.background=new THREE.Color(0x79c8df);scene.fog=new THREE.Fog(0x79c8df,260,3200);camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,.1,7000);scene.add(camera);renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.setSize(innerWidth,innerHeight);$('game').appendChild(renderer.domElement);hemiLight=new THREE.HemisphereLight(0xd9f7ff,0x53613c,2.15);scene.add(hemiLight);sunLight=new THREE.DirectionalLight(0xffedc5,2.35);sunLight.position.set(-20,35,15);scene.add(sunLight);fillLight=new THREE.DirectionalLight(0x8bdcff,.55);fillLight.position.set(18,12,-18);scene.add(fillLight);moonLight=new THREE.DirectionalLight(0x9bb9ed,0);scene.add(moonLight);createCelestialBodies();createWeatherEffects();player=createPlayerCharacter();scene.add(player);camera.position.set(0,5,8);camera.lookAt(0,0,0);clock=new THREE.Clock();renderer.render(scene,camera);window.addEventListener('resize',resize);renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();say('Recarregando os gráficos…')});renderer.domElement.addEventListener('webglcontextrestored',()=>{resize();startAnimationLoop();say('Gráficos restaurados!')});startAnimationLoop()}
