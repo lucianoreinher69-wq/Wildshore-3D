@@ -117,8 +117,8 @@ window.addEventListener('error',function(e){
   if(status)status.textContent='Falha ao carregar: '+detail;
 });
 </script>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<script>window.__wildshoreGLTFLoaderReady=import('three/addons/loaders/GLTFLoader.js').then(module=>module.GLTFLoader);</script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+<script>window.__wildshoreGLTFLoaderReady=import("./vendor/GLTFLoader.js").then(module=>module.GLTFLoader);</script>
 <script src="vendor/three.min.js"></script>
 <script>
 (()=>{'use strict';
@@ -359,7 +359,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
   if(settled)return;
   const loader=new GLTFLoader();
   loader.setCrossOrigin('anonymous');
-  loader.load('https://vibeassets.io/download/zpepqtthci?combined=1',gltf=>{
+  loader.load('./assets/characters/camper_rigged_animated.glb',gltf=>{
    if(settled)return;
    try{
     const model=gltf.scene;
