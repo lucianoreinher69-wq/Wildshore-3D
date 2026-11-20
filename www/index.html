@@ -304,13 +304,22 @@ function createPlayerCharacter(){
  const handle=new THREE.Mesh(new THREE.CylinderGeometry(.031,.043,.76,14),wood);handle.rotation.z=-.18;handle.position.set(0,handleY,.04);tool.add(handle);
  const grip=new THREE.Mesh(new THREE.CylinderGeometry(.039,.039,.19,14),woodGrip);grip.rotation.z=-.18;grip.position.set(0,handleY-.20,.04);tool.add(grip);
  const head=new THREE.Group();head.position.set(.08,topY,.04);
- const axeShape=new THREE.Shape();axeShape.moveTo(.02,-.105);axeShape.lineTo(-.105,-.16);axeShape.quadraticCurveTo(-.22,-.21,-.29,-.12);axeShape.quadraticCurveTo(-.35,0,-.29,.13);axeShape.quadraticCurveTo(-.23,.22,-.10,.16);axeShape.lineTo(.02,.105);axeShape.lineTo(.10,.075);axeShape.lineTo(.10,-.075);axeShape.closePath();
+ const axeShape=new THREE.Shape();
+ axeShape.moveTo(.075,-.115);axeShape.lineTo(-.035,-.155);axeShape.lineTo(-.17,-.205);axeShape.lineTo(-.265,-.17);axeShape.lineTo(-.325,-.075);axeShape.lineTo(-.345,.025);axeShape.lineTo(-.295,.145);axeShape.lineTo(-.205,.205);axeShape.lineTo(-.105,.18);axeShape.lineTo(-.015,.12);axeShape.lineTo(.075,.105);axeShape.closePath();
  const stoneHeadMat=new THREE.MeshStandardMaterial({color:0x77766d,roughness:1,metalness:0});
- const stoneEdgeMat=new THREE.MeshStandardMaterial({color:0xaaa99d,roughness:.96});
- const axeBlade=new THREE.Mesh(new THREE.ExtrudeGeometry(axeShape,{depth:.15,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.025}),stoneHeadMat);axeBlade.position.z=-.025;head.add(axeBlade);
- const axeEdge=new THREE.Mesh(new THREE.BoxGeometry(.035,.29,.16),stoneEdgeMat);axeEdge.position.set(-.285,0,.055);axeEdge.rotation.z=-.08;head.add(axeEdge);
+ const stoneFacetMat=new THREE.MeshStandardMaterial({color:0x99988d,roughness:1});
+ const stoneEdgeMat=new THREE.MeshStandardMaterial({color:0xb8b5a7,roughness:.98});
+ const axeBlade=new THREE.Mesh(new THREE.ExtrudeGeometry(axeShape,{depth:.145,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.018,bevelThickness:.018}),stoneHeadMat);axeBlade.position.z=-.072;head.add(axeBlade);
+ // Facetas irregulares de pedra lascada e fio claro de corte.
+ const facetShape=new THREE.Shape();facetShape.moveTo(-.29,-.07);facetShape.lineTo(-.18,-.16);facetShape.lineTo(-.055,-.105);facetShape.lineTo(-.12,.005);facetShape.closePath();
+ const facet=new THREE.Mesh(new THREE.ShapeGeometry(facetShape),stoneFacetMat);facet.position.z=.075;head.add(facet);
+ const cuttingEdgeShape=new THREE.Shape();cuttingEdgeShape.moveTo(-.345,.025);cuttingEdgeShape.lineTo(-.295,.145);cuttingEdgeShape.lineTo(-.205,.205);cuttingEdgeShape.lineTo(-.265,.125);cuttingEdgeShape.lineTo(-.315,.015);cuttingEdgeShape.closePath();
+ const cuttingEdge=new THREE.Mesh(new THREE.ShapeGeometry(cuttingEdgeShape),stoneEdgeMat);cuttingEdge.position.z=.078;head.add(cuttingEdge);
  const axeBindingMat=new THREE.MeshStandardMaterial({color:0xb99a69,roughness:1});
- for(let n=0;n<5;n++){const wrap=new THREE.Mesh(new THREE.TorusGeometry(.052,.009,6,14),axeBindingMat);wrap.rotation.x=Math.PI/2;wrap.position.set(.035,-.075+n*.037,.04);head.add(wrap)}
+ const fiberDark=new THREE.MeshStandardMaterial({color:0x705039,roughness:1});
+ for(let n=0;n<7;n++){const wrap=new THREE.Mesh(new THREE.TorusGeometry(.052,.008,5,12),axeBindingMat);wrap.rotation.x=Math.PI/2;wrap.position.set(.035,-.075+n*.026,.04);head.add(wrap)}
+ const tieA=new THREE.Mesh(new THREE.CylinderGeometry(.009,.009,.17,6),fiberDark);tieA.rotation.z=.48;tieA.position.set(.04,-.015,.09);head.add(tieA);
+ const tieB=tieA.clone();tieB.rotation.z=-.48;tieB.position.y=-.07;head.add(tieB);
  tool.add(head);
  const pickHead=new THREE.Group();pickHead.position.set(.06,topY,.04);
  const pickBody=new THREE.Mesh(new THREE.BoxGeometry(.16,.12,.13),woodCut);pickHead.add(pickBody);
@@ -319,12 +328,18 @@ function createPlayerCharacter(){
  const pickAdze=new THREE.Mesh(new THREE.ConeGeometry(.065,.19,12),woodHighlight);pickAdze.rotation.z=-Math.PI/2;pickAdze.position.x=.29;pickHead.add(pickAdze);
  pickHead.visible=false;tool.add(pickHead);
  const hammerHead=new THREE.Group();hammerHead.position.set(.08,topY,.04);
- const malletWood=new THREE.MeshStandardMaterial({color:0x96683f,roughness:.98});
- const malletEnd=new THREE.MeshStandardMaterial({color:0xc0915b,roughness:1});
- const hammerBody=new THREE.Mesh(new THREE.CylinderGeometry(.205,.205,.40,18),malletWood);hammerBody.rotation.z=Math.PI/2;hammerBody.position.y=.015;hammerHead.add(hammerBody);
- const faceA=new THREE.Mesh(new THREE.CircleGeometry(.202,24),malletEnd);faceA.rotation.y=Math.PI/2;faceA.position.x=.202;faceA.position.y=.015;hammerHead.add(faceA);
- const faceB=new THREE.Mesh(new THREE.CircleGeometry(.202,24),woodCut);faceB.rotation.y=-Math.PI/2;faceB.position.x=-.202;faceB.position.y=.015;hammerHead.add(faceB);
- for(let ring=0;ring<5;ring++){const grain=new THREE.Mesh(new THREE.TorusGeometry(.035+ring*.032,.004,4,28),woodCut);grain.rotation.y=Math.PI/2;grain.position.set(.205,.015,.0);hammerHead.add(grain)}
+ const malletWood=new THREE.MeshStandardMaterial({color:0x96683f,roughness:1});
+ const malletEnd=new THREE.MeshStandardMaterial({color:0xb98750,roughness:1});
+ const malletDark=new THREE.MeshStandardMaterial({color:0x68452c,roughness:1});
+ // Cabeça maciça de madeira, retangular e com cantos suavizados.
+ const hammerBody=new THREE.Mesh(new THREE.BoxGeometry(.49,.30,.29),malletWood);hammerBody.position.y=.015;hammerHead.add(hammerBody);
+ const bevelTop=new THREE.Mesh(new THREE.BoxGeometry(.43,.035,.305),malletEnd);bevelTop.position.set(0,.151,.0);hammerHead.add(bevelTop);
+ const bevelBottom=new THREE.Mesh(new THREE.BoxGeometry(.43,.035,.305),malletDark);bevelBottom.position.set(0,-.121,.0);hammerHead.add(bevelBottom);
+ // Faces planas de impacto com moldura de madeira mais escura.
+ const faceA=new THREE.Mesh(new THREE.BoxGeometry(.018,.235,.225),malletEnd);faceA.position.set(.251,.015,0);hammerHead.add(faceA);
+ const faceB=new THREE.Mesh(new THREE.BoxGeometry(.018,.235,.225),malletDark);faceB.position.set(-.251,.015,0);hammerHead.add(faceB);
+ // Veios discretos nas laterais da cabeça.
+ for(let grain=0;grain<4;grain++){const line=new THREE.Mesh(new THREE.BoxGeometry(.012,.19,.008),malletDark);line.position.set(.0,.015,(grain-1.5)*.052);hammerHead.add(line)}
  const malletBinding=new THREE.Mesh(new THREE.TorusGeometry(.086,.012,6,16),axeBindingMat);malletBinding.rotation.x=Math.PI/2;malletBinding.position.set(0,-.02,.015);hammerHead.add(malletBinding);
  hammerHead.visible=false;tool.add(hammerHead);
  const spearHead=new THREE.Group();spearHead.position.set(0,topY-.19,.04);
