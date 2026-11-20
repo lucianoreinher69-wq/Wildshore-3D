@@ -118,7 +118,7 @@ window.addEventListener('error',function(e){
 });
 </script>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
-<script>window.__wildshoreGLTFLoaderReady=import("./vendor/GLTFLoader.js").then(module=>module.GLTFLoader);</script>
+<script>window.__wildshoreGLTFLoaderReady=import("./vendor/GLTFLoader.js").then(module=>module.GLTFLoader).catch(error=>{console.error("Wildshore GLTFLoader import failed",error);window.__wildshoreGLTFLoaderError=String(error&&error.message||error);throw error;});</script>
 <script>
 // Use one Three.js module instance for both the game and GLTFLoader.
 // Mixing three.min.js with the module build can break imported model objects.
