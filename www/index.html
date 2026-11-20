@@ -302,9 +302,14 @@ function createPlayerCharacter(){
  const grip=new THREE.Mesh(new THREE.CylinderGeometry(.039,.039,.19,14),woodGrip);grip.rotation.z=-.18;grip.position.set(0,handleY-.20,.04);tool.add(grip);
  const head=new THREE.Group();head.position.set(.08,topY,.04);
  const axeShape=new THREE.Shape();axeShape.moveTo(.02,-.105);axeShape.lineTo(-.105,-.16);axeShape.quadraticCurveTo(-.22,-.21,-.29,-.12);axeShape.quadraticCurveTo(-.35,0,-.29,.13);axeShape.quadraticCurveTo(-.23,.22,-.10,.16);axeShape.lineTo(.02,.105);axeShape.lineTo(.10,.075);axeShape.lineTo(.10,-.075);axeShape.closePath();
- const axeBlade=new THREE.Mesh(new THREE.ExtrudeGeometry(axeShape,{depth:.085,bevelEnabled:true,bevelSegments:4,steps:1,bevelSize:.018,bevelThickness:.014}),woodGrip);head.add(axeBlade);
- const axeCut=new THREE.Mesh(new THREE.BoxGeometry(.012,.235,.095),woodHighlight);axeCut.position.set(-.29,0,.04);axeCut.rotation.z=-.12;head.add(axeCut);
- const axeEye=new THREE.Mesh(new THREE.CylinderGeometry(.057,.052,.17,12),woodCut);axeEye.rotation.z=Math.PI/2;axeEye.position.set(.055,0,.04);head.add(axeEye);tool.add(head);
+ const stoneHeadMat=new THREE.MeshStandardMaterial({color:0x77766d,roughness:1,metalness:0});
+ const stoneEdgeMat=new THREE.MeshStandardMaterial({color:0xaaa99d,roughness:.96});
+ const axeBlade=new THREE.Mesh(new THREE.ExtrudeGeometry(axeShape,{depth:.15,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.025}),stoneHeadMat);axeBlade.position.z=-.025;head.add(axeBlade);
+ const axeFacet=new THREE.Mesh(new THREE.DodecahedronGeometry(.105,0),stoneEdgeMat);axeFacet.scale.set(1.35,1.55,.62);axeFacet.position.set(-.18,.015,.105);axeFacet.rotation.z=-.18;head.add(axeFacet);
+ const axeEye=new THREE.Mesh(new THREE.CylinderGeometry(.061,.057,.19,10),woodCut);axeEye.rotation.z=Math.PI/2;axeEye.position.set(.055,0,.04);head.add(axeEye);
+ const axeBindingMat=new THREE.MeshStandardMaterial({color:0xc2a477,roughness:1});
+ for(let n=0;n<4;n++){const wrap=new THREE.Mesh(new THREE.TorusGeometry(.064,.012,6,12),axeBindingMat);wrap.rotation.y=Math.PI/2;wrap.position.set(.055+(n-1.5)*.035,0,.04);head.add(wrap)}
+ tool.add(head);
  const pickHead=new THREE.Group();pickHead.position.set(.06,topY,.04);
  const pickBody=new THREE.Mesh(new THREE.BoxGeometry(.16,.12,.13),woodCut);pickHead.add(pickBody);
  const pickBar=new THREE.Mesh(new THREE.CylinderGeometry(.045,.055,.43,12),woodGrip);pickBar.rotation.z=Math.PI/2;pickHead.add(pickBar);
@@ -312,10 +317,14 @@ function createPlayerCharacter(){
  const pickAdze=new THREE.Mesh(new THREE.ConeGeometry(.065,.19,12),woodHighlight);pickAdze.rotation.z=-Math.PI/2;pickAdze.position.x=.29;pickHead.add(pickAdze);
  pickHead.visible=false;tool.add(pickHead);
  const hammerHead=new THREE.Group();hammerHead.position.set(.08,topY,.04);
- const hammerBody=new THREE.Mesh(new THREE.CylinderGeometry(.145,.145,.48,14),woodGrip);hammerBody.rotation.z=Math.PI/2;hammerHead.add(hammerBody);
- const faceA=new THREE.Mesh(new THREE.CylinderGeometry(.145,.145,.035,14),woodCut);faceA.rotation.z=Math.PI/2;faceA.position.x=.245;hammerHead.add(faceA);
- const faceB=new THREE.Mesh(new THREE.CylinderGeometry(.145,.145,.035,14),woodCut);faceB.rotation.z=Math.PI/2;faceB.position.x=-.245;hammerHead.add(faceB);
- const malletNeck=new THREE.Mesh(new THREE.CylinderGeometry(.065,.075,.25,10),woodCut);malletNeck.position.set(0,-.23,0);hammerHead.add(malletNeck);
+ const malletWood=new THREE.MeshStandardMaterial({color:0x96683f,roughness:.98});
+ const malletEnd=new THREE.MeshStandardMaterial({color:0xc0915b,roughness:1});
+ const hammerBody=new THREE.Mesh(new THREE.CylinderGeometry(.19,.205,.34,16),malletWood);hammerBody.rotation.x=Math.PI/2;hammerBody.position.y=.015;hammerHead.add(hammerBody);
+ const faceA=new THREE.Mesh(new THREE.CircleGeometry(.188,20),malletEnd);faceA.position.z=.176;hammerHead.add(faceA);
+ const faceB=new THREE.Mesh(new THREE.CircleGeometry(.195,20),woodCut);faceB.rotation.y=Math.PI;faceB.position.z=-.176;hammerHead.add(faceB);
+ for(let ring=0;ring<5;ring++){const grain=new THREE.Mesh(new THREE.TorusGeometry(.035+ring*.032,.004,4,28),woodCut);grain.position.set(0,.015,.179);hammerHead.add(grain)}
+ const malletNeck=new THREE.Mesh(new THREE.CylinderGeometry(.073,.085,.27,12),woodCut);malletNeck.position.set(0,-.235,0);hammerHead.add(malletNeck);
+ const malletBinding=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.075,12),axeBindingMat);malletBinding.position.set(0,-.285,.005);hammerHead.add(malletBinding);
  hammerHead.visible=false;tool.add(hammerHead);
  const spearHead=new THREE.Group();spearHead.position.set(0,topY-.19,.04);
  const spearPoint=new THREE.Mesh(new THREE.ConeGeometry(.075,.34,8),woodHighlight);spearPoint.position.y=.18;spearHead.add(spearPoint);
@@ -424,16 +433,27 @@ $('buildMenu').addEventListener('click',e=>{const b=e.target.closest('#buildMenu
   });
  }
 }
-function playToolAction(kind){if(!state.equippedTool)return;toolActionKind=kind||state.equippedTool;toolActionTime=0;heldToolGroups.forEach(({tool})=>tool.rotation.set(0,0,-.08))}
+function playToolAction(kind){if(!state.equippedTool)return;toolActionKind=kind||state.equippedTool;toolActionTime=0;heldToolGroups.forEach(({tool})=>{tool.rotation.set(0,0,-.08);tool.position.z=tool.userData.baseZ??tool.position.z})}
 function updateToolAction(dt){
  if(!toolActionKind)return;
  toolActionTime+=dt;
- const key=state.equippedTool,duration=key==='spear'?.62:.72,p=Math.min(1,toolActionTime/duration),ease=Math.sin(Math.PI*p);
- let shoulderX=0,shoulderZ=0,elbowX=0,toolX=0,toolZ=-.08;
- if(key==='axe'){shoulderX=-.72*ease;shoulderZ=-.28*ease;elbowX=-.48*ease;toolX=-1.02*ease;toolZ=-.08+.16*ease}
- else if(key==='pickaxe'){shoulderX=-.9*ease;shoulderZ=-.12*ease;elbowX=-.62*ease;toolX=-1.18*ease;toolZ=-.04}
- else if(key==='hammer'){shoulderX=-.82*ease;shoulderZ=-.08*ease;elbowX=-.55*ease;toolX=-.92*ease;toolZ=-.04}
- else if(key==='spear'){shoulderX=-.42*ease;shoulderZ=.12*ease;elbowX=-.22*ease;toolX=-.08;toolZ=-.08-.42*ease}
+ const key=state.equippedTool||'axe',duration=key==='spear'?.68:key==='hammer'?.92:.96,p=Math.min(1,toolActionTime/duration);
+ const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
+ const lerp=(a,b,t)=>a+(b-a)*t;
+ let shoulderX=0,shoulderZ=0,elbowX=0,toolX=0,toolZ=-.08,phase=0;
+ if(key==='spear'){
+  if(p<.28){phase=smooth(p/.28);shoulderX=lerp(0,-.24,phase);elbowX=lerp(0,-.18,phase);toolX=lerp(0,-.12,phase)}
+  else if(p<.58){phase=smooth((p-.28)/.30);shoulderX=lerp(-.24,.52,phase);elbowX=lerp(-.18,.28,phase);toolX=lerp(-.12,-.72,phase);toolZ=-.08-.12*phase}
+  else{phase=smooth((p-.58)/.42);shoulderX=lerp(.52,0,phase);elbowX=lerp(.28,0,phase);toolX=lerp(-.72,0,phase);toolZ=lerp(-.20,-.08,phase)}
+ }else{
+  const overhead=key==='hammer'||key==='pickaxe';
+  const back=key==='axe'?-1.05:overhead?-1.28:-.9;
+  const strike=key==='axe'?.52:overhead?.72:.48;
+  const elbowBack=key==='axe'?.52:.66,elbowStrike=key==='axe'?.18:.28;
+  if(p<.38){phase=smooth(p/.38);shoulderX=lerp(0,back,phase);shoulderZ=lerp(0,key==='axe'?.34:.12,phase);elbowX=lerp(0,-elbowBack,phase);toolX=lerp(0,overhead?-.62:-.48,phase);toolZ=lerp(-.08,overhead?-.28:-.34,phase)}
+  else if(p<.62){phase=smooth((p-.38)/.24);shoulderX=lerp(back,strike,phase);shoulderZ=lerp(key==='axe'?.34:.12,key==='axe'?-.12:-.04,phase);elbowX=lerp(-elbowBack,elbowStrike,phase);toolX=lerp(overhead?-.62:-.48,overhead?1.18:1.02,phase);toolZ=lerp(overhead?-.28:-.34,.16,phase)}
+  else{phase=smooth((p-.62)/.38);shoulderX=lerp(strike,0,phase);shoulderZ=lerp(key==='axe'?.12:-.04,0,phase);elbowX=lerp(elbowStrike,0,phase);toolX=lerp(overhead?1.18:1.02,0,phase);toolZ=lerp(.16,-.08,phase)}
+ }
  if(walkRig&&walkRig.arms&&walkRig.arms[1]){const arm=walkRig.arms[1];arm.shoulder.rotation.x=shoulderX;arm.shoulder.rotation.z=shoulderZ;arm.elbow.rotation.x=elbowX}
  for(const rig of toolArmRig){if(rig.upper&&rig.baseUpper){rig.upper.rotation.copy(rig.baseUpper);rig.upper.rotation.x+=shoulderX;rig.upper.rotation.z+=shoulderZ}if(rig.lower&&rig.baseLower){rig.lower.rotation.copy(rig.baseLower);rig.lower.rotation.x+=elbowX}}
  heldToolGroups.forEach(({tool})=>{tool.rotation.x=toolX;tool.rotation.z=toolZ});
