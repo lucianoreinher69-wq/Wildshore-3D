@@ -346,7 +346,7 @@ function setWildshorePlayerMotion(moving,intensity=0){
 function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArms){
  const ready=window.__wildshoreGLTFLoaderReady;
  let settled=false;
- let fallbackTimer=setTimeout(()=>useFallback(new Error('Tempo limite ao carregar personagem remoto; usando personagem local para iniciar sem internet.')),2200);
+ let fallbackTimer=setTimeout(()=>useFallback(new Error('Tempo limite ao carregar personagem local; usando personagem de segurança.')),15000);
  const useFallback=error=>{
   if(settled)return;
   settled=true;clearTimeout(fallbackTimer);
@@ -388,6 +388,10 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     toolArmRig=rightArm?[{upper:rightArm,lower:rightForearm,baseUpper:rightArm.rotation.clone(),baseLower:rightForearm?rightForearm.rotation.clone():null}]:[];
     if(rightHand&&heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
+     // Hide the complete geometric placeholder: otherwise its torso and legs remain visible
+     // underneath the downloaded camper and make the old character appear to persist.
+     fallbackTorso.visible=false;
+     fallbackLegs.forEach(part=>part.visible=false);
      fallbackArms.forEach(part=>part.visible=false);
      fallbackArms[1].remove(tool);
      rightHand.add(tool);
@@ -397,12 +401,12 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      tool.userData.thirdPersonHolder=rightHand;
      walkRig=null;
     }else{
-     // If the downloaded rig has no named hand bone, keep the local right arm and its tool visible.
+     // The downloaded rig has no recognized right hand: show only the local tool arm as a safe fallback.
      fallbackTorso.visible=false;
      fallbackLegs.forEach(part=>part.visible=false);
      fallbackArms.forEach((part,index)=>{part.visible=index===1});
      walkRig=walkRig||null;
-     console.warn('Wildshore: mão direita não identificada no rig; mantendo braço e ferramenta locais.');
+     console.warn('Wildshore: mão direita não identificada no rig; mantendo apenas o braço e a ferramenta locais.');
     }
     settled=true;clearTimeout(fallbackTimer);
     playerModelReady=true;
