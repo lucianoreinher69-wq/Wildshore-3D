@@ -305,10 +305,9 @@ function createPlayerCharacter(){
  const stoneHeadMat=new THREE.MeshStandardMaterial({color:0x77766d,roughness:1,metalness:0});
  const stoneEdgeMat=new THREE.MeshStandardMaterial({color:0xaaa99d,roughness:.96});
  const axeBlade=new THREE.Mesh(new THREE.ExtrudeGeometry(axeShape,{depth:.15,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.025}),stoneHeadMat);axeBlade.position.z=-.025;head.add(axeBlade);
- const axeFacet=new THREE.Mesh(new THREE.DodecahedronGeometry(.105,0),stoneEdgeMat);axeFacet.scale.set(1.35,1.55,.62);axeFacet.position.set(-.18,.015,.105);axeFacet.rotation.z=-.18;head.add(axeFacet);
- const axeEye=new THREE.Mesh(new THREE.CylinderGeometry(.061,.057,.19,10),woodCut);axeEye.rotation.z=Math.PI/2;axeEye.position.set(.055,0,.04);head.add(axeEye);
- const axeBindingMat=new THREE.MeshStandardMaterial({color:0xc2a477,roughness:1});
- for(let n=0;n<4;n++){const wrap=new THREE.Mesh(new THREE.TorusGeometry(.064,.012,6,12),axeBindingMat);wrap.rotation.y=Math.PI/2;wrap.position.set(.055+(n-1.5)*.035,0,.04);head.add(wrap)}
+ const axeEdge=new THREE.Mesh(new THREE.BoxGeometry(.035,.29,.16),stoneEdgeMat);axeEdge.position.set(-.285,0,.055);axeEdge.rotation.z=-.08;head.add(axeEdge);
+ const axeBindingMat=new THREE.MeshStandardMaterial({color:0xb99a69,roughness:1});
+ for(let n=0;n<5;n++){const wrap=new THREE.Mesh(new THREE.TorusGeometry(.052,.009,6,14),axeBindingMat);wrap.rotation.x=Math.PI/2;wrap.position.set(.035,-.075+n*.037,.04);head.add(wrap)}
  tool.add(head);
  const pickHead=new THREE.Group();pickHead.position.set(.06,topY,.04);
  const pickBody=new THREE.Mesh(new THREE.BoxGeometry(.16,.12,.13),woodCut);pickHead.add(pickBody);
@@ -319,12 +318,11 @@ function createPlayerCharacter(){
  const hammerHead=new THREE.Group();hammerHead.position.set(.08,topY,.04);
  const malletWood=new THREE.MeshStandardMaterial({color:0x96683f,roughness:.98});
  const malletEnd=new THREE.MeshStandardMaterial({color:0xc0915b,roughness:1});
- const hammerBody=new THREE.Mesh(new THREE.CylinderGeometry(.19,.205,.34,16),malletWood);hammerBody.rotation.x=Math.PI/2;hammerBody.position.y=.015;hammerHead.add(hammerBody);
- const faceA=new THREE.Mesh(new THREE.CircleGeometry(.188,20),malletEnd);faceA.position.z=.176;hammerHead.add(faceA);
- const faceB=new THREE.Mesh(new THREE.CircleGeometry(.195,20),woodCut);faceB.rotation.y=Math.PI;faceB.position.z=-.176;hammerHead.add(faceB);
- for(let ring=0;ring<5;ring++){const grain=new THREE.Mesh(new THREE.TorusGeometry(.035+ring*.032,.004,4,28),woodCut);grain.position.set(0,.015,.179);hammerHead.add(grain)}
- const malletNeck=new THREE.Mesh(new THREE.CylinderGeometry(.073,.085,.27,12),woodCut);malletNeck.position.set(0,-.235,0);hammerHead.add(malletNeck);
- const malletBinding=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.075,12),axeBindingMat);malletBinding.position.set(0,-.285,.005);hammerHead.add(malletBinding);
+ const hammerBody=new THREE.Mesh(new THREE.CylinderGeometry(.205,.205,.40,18),malletWood);hammerBody.rotation.z=Math.PI/2;hammerBody.position.y=.015;hammerHead.add(hammerBody);
+ const faceA=new THREE.Mesh(new THREE.CircleGeometry(.202,24),malletEnd);faceA.rotation.y=Math.PI/2;faceA.position.x=.202;faceA.position.y=.015;hammerHead.add(faceA);
+ const faceB=new THREE.Mesh(new THREE.CircleGeometry(.202,24),woodCut);faceB.rotation.y=-Math.PI/2;faceB.position.x=-.202;faceB.position.y=.015;hammerHead.add(faceB);
+ for(let ring=0;ring<5;ring++){const grain=new THREE.Mesh(new THREE.TorusGeometry(.035+ring*.032,.004,4,28),woodCut);grain.rotation.y=Math.PI/2;grain.position.set(.205,.015,.0);hammerHead.add(grain)}
+ const malletBinding=new THREE.Mesh(new THREE.TorusGeometry(.086,.012,6,16),axeBindingMat);malletBinding.rotation.x=Math.PI/2;malletBinding.position.set(0,-.02,.015);hammerHead.add(malletBinding);
  hammerHead.visible=false;tool.add(hammerHead);
  const spearHead=new THREE.Group();spearHead.position.set(0,topY-.19,.04);
  const spearPoint=new THREE.Mesh(new THREE.ConeGeometry(.075,.34,8),woodHighlight);spearPoint.position.y=.18;spearHead.add(spearPoint);
@@ -382,8 +380,8 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     if(heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool,holder=rightHand||rightForearm||rightArm;
      fallbackArms[1].remove(tool);
-     if(holder){holder.add(tool);tool.position.set(0,rightHand?-.035:-.22,.055);tool.rotation.set(0,0,rightHand?-Math.PI/2:-.08);tool.scale.setScalar(rightHand?.82:.72)}
-     else{model.add(tool);tool.position.set(.34,.72,.16);tool.rotation.set(0,0,-.08);tool.scale.setScalar(.72);console.warn('Wildshore: osso da mão direita não encontrado; ferramenta posicionada junto à mão do personagem.')}
+     if(holder){holder.add(tool);tool.position.set(rightHand?.015:.025,rightHand?-.105:-.28,rightHand?.035:.055);tool.rotation.set(rightHand?-.08:0,0,rightHand?-.12:-.08);tool.scale.setScalar(rightHand?.88:.78);tool.userData.thirdPersonHolder=holder}
+     else{const fallbackHand=new THREE.Group();fallbackHand.position.set(.28,.98,.02);model.add(fallbackHand);fallbackHand.add(tool);tool.position.set(0,-.18,.02);tool.rotation.set(0,0,-.08);tool.scale.setScalar(.78);tool.userData.thirdPersonHolder=fallbackHand;console.warn('Wildshore: osso da mão direita não encontrado; ferramenta presa a um suporte de mão de segurança.')}
     }
     continuePendingSession();
    }catch(error){useFallback(error)}
