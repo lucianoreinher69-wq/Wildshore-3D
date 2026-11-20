@@ -366,7 +366,10 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     model.traverse(obj=>{if(obj.isMesh){obj.frustumCulled=true;obj.castShadow=true;obj.receiveShadow=true}});
     let bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
     if(!Number.isFinite(size.y)||size.y<.25)throw new Error('Altura inválida no modelo 3D');
-    model.scale.setScalar(1.78/size.y);
+    // The imported rig is inside a scaled player root. Compensate for that
+    // scale so its final world height remains 1.78m instead of becoming ~0.43m.
+    const rootScale=Math.abs(root.scale.y)||1;
+    model.scale.setScalar(1.78/(size.y*rootScale));
     bounds.setFromObject(model);
     model.position.x-=(bounds.min.x+bounds.max.x)*.5;
     model.position.y-=bounds.min.y;
