@@ -297,7 +297,7 @@ function createPlayerCharacter(){
  const topY=[-.64,-.17][index],handleY=[-.96,-.48][index],toolY=[-.02,.58][index],toolZ=[0,-.12][index];
  const tool=new THREE.Group();
  const wood=new THREE.MeshStandardMaterial({color:0x76502f,roughness:.94}),woodGrip=new THREE.MeshStandardMaterial({color:0x986a40,roughness:.92}),woodCut=new THREE.MeshStandardMaterial({color:0x55351f,roughness:1}),woodHighlight=new THREE.MeshStandardMaterial({color:0xb18150,roughness:.9});
- tool.position.set(0,toolY,toolZ);tool.rotation.set(0,0,-.08);
+ tool.position.set(0,toolY,toolZ);tool.userData.baseZ=toolZ;tool.rotation.set(0,0,-.08);
  const handle=new THREE.Mesh(new THREE.CylinderGeometry(.031,.043,.76,14),wood);handle.rotation.z=-.18;handle.position.set(0,handleY,.04);tool.add(handle);
  const grip=new THREE.Mesh(new THREE.CylinderGeometry(.039,.039,.19,14),woodGrip);grip.rotation.z=-.18;grip.position.set(0,handleY-.20,.04);tool.add(grip);
  const head=new THREE.Group();head.position.set(.08,topY,.04);
@@ -440,11 +440,11 @@ function updateToolAction(dt){
  const key=state.equippedTool||'axe',duration=key==='spear'?.68:key==='hammer'?.92:.96,p=Math.min(1,toolActionTime/duration);
  const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)};
  const lerp=(a,b,t)=>a+(b-a)*t;
- let shoulderX=0,shoulderZ=0,elbowX=0,toolX=0,toolZ=-.08,phase=0;
+ let shoulderX=0,shoulderZ=0,elbowX=0,toolX=0,toolZ=-.08,toolReach=0,phase=0;
  if(key==='spear'){
   if(p<.28){phase=smooth(p/.28);shoulderX=lerp(0,-.24,phase);elbowX=lerp(0,-.18,phase);toolX=lerp(0,-.12,phase)}
-  else if(p<.58){phase=smooth((p-.28)/.30);shoulderX=lerp(-.24,.52,phase);elbowX=lerp(-.18,.28,phase);toolX=lerp(-.12,-.72,phase);toolZ=-.08-.12*phase}
-  else{phase=smooth((p-.58)/.42);shoulderX=lerp(.52,0,phase);elbowX=lerp(.28,0,phase);toolX=lerp(-.72,0,phase);toolZ=lerp(-.20,-.08,phase)}
+  else if(p<.58){phase=smooth((p-.28)/.30);shoulderX=lerp(-.24,.52,phase);elbowX=lerp(-.18,.28,phase);toolX=lerp(-.12,-.72,phase);toolReach=.62*phase;toolZ=-.08-.12*phase}
+  else{phase=smooth((p-.58)/.42);shoulderX=lerp(.52,0,phase);elbowX=lerp(.28,0,phase);toolX=lerp(-.72,0,phase);toolReach=.62*(1-phase);toolZ=lerp(-.20,-.08,phase)}
  }else{
   const overhead=key==='hammer'||key==='pickaxe';
   const back=key==='axe'?-1.05:overhead?-1.28:-.9;
@@ -456,7 +456,7 @@ function updateToolAction(dt){
  }
  if(walkRig&&walkRig.arms&&walkRig.arms[1]){const arm=walkRig.arms[1];arm.shoulder.rotation.x=shoulderX;arm.shoulder.rotation.z=shoulderZ;arm.elbow.rotation.x=elbowX}
  for(const rig of toolArmRig){if(rig.upper&&rig.baseUpper){rig.upper.rotation.copy(rig.baseUpper);rig.upper.rotation.x+=shoulderX;rig.upper.rotation.z+=shoulderZ}if(rig.lower&&rig.baseLower){rig.lower.rotation.copy(rig.baseLower);rig.lower.rotation.x+=elbowX}}
- heldToolGroups.forEach(({tool})=>{tool.rotation.x=toolX;tool.rotation.z=toolZ});
+ heldToolGroups.forEach(({tool},index)=>{tool.rotation.x=toolX;tool.rotation.z=toolZ;tool.position.z=(tool.userData.baseZ||0)+(key==='spear'?(index===0?toolReach:-toolReach):0)});
  if(p>=1){if(walkRig&&walkRig.arms&&walkRig.arms[1]){walkRig.arms[1].shoulder.rotation.set(0,0,0);walkRig.arms[1].elbow.rotation.set(0,0,0)}for(const rig of toolArmRig){if(rig.upper&&rig.baseUpper)rig.upper.rotation.copy(rig.baseUpper);if(rig.lower&&rig.baseLower)rig.lower.rotation.copy(rig.baseLower)}heldToolGroups.forEach(({tool})=>tool.rotation.set(0,0,-.08));toolActionKind='';toolActionTime=0}
 }
 function setEquippedToolVisual(){const key=state.equippedTool||'';if(heldToolGroups.length)heldToolGroups.forEach(({tool,head,pickHead,hammerHead,tip})=>{tool.visible=!!key;head.visible=key==='axe';pickHead.visible=key==='pickaxe';hammerHead.visible=key==='hammer';tip.visible=key==='spear'});renderToolHotbar()}
