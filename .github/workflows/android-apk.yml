@@ -31,8 +31,8 @@ jobs:
       - name: Download licensed camper character for offline play
         run: |
           mkdir -p www/assets/characters
-          curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 120 \\
-            'https://vibeassets.io/download/zpepqtthci?combined=1' \\
+          curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 120 \
+            'https://vibeassets.io/download/zpepqtthci?combined=1' \
             --output www/assets/characters/camper_rigged_animated.glb
           test -s www/assets/characters/camper_rigged_animated.glb
           test "$(wc -c < www/assets/characters/camper_rigged_animated.glb)" -gt 1000000
