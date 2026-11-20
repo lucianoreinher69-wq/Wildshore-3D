@@ -345,12 +345,22 @@ function setWildshorePlayerMotion(moving,intensity=0){
 }
 function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArms){
  const ready=window.__wildshoreGLTFLoaderReady;
- const useFallback=error=>{playerModelFailed=true;playerModelReady=true;console.error('Wildshore: modelo definitivo indisponível; usando personagem de segurança.',error);continuePendingSession()};
+ let settled=false;
+ let fallbackTimer=setTimeout(()=>useFallback(new Error('Tempo limite ao carregar personagem remoto; usando personagem local para iniciar sem internet.')),2200);
+ const useFallback=error=>{
+  if(settled)return;
+  settled=true;clearTimeout(fallbackTimer);
+  playerModelFailed=true;playerModelReady=true;
+  console.warn('Wildshore: personagem remoto indisponível; usando personagem local.',error);
+  continuePendingSession();
+ };
  if(!ready||typeof ready.then!=='function'){useFallback(new Error('GLTFLoader não foi inicializado'));return}
  ready.then(GLTFLoader=>{
+  if(settled)return;
   const loader=new GLTFLoader();
   loader.setCrossOrigin('anonymous');
   loader.load('https://vibeassets.io/download/zpepqtthci?combined=1',gltf=>{
+   if(settled)return;
    try{
     const model=gltf.scene;
     model.traverse(obj=>{if(obj.isMesh){obj.frustumCulled=true;obj.castShadow=true;obj.receiveShadow=true}});
@@ -362,27 +372,41 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     model.position.y-=bounds.min.y;
     model.position.z-=(bounds.min.z+bounds.max.z)*.5;
     root.add(model);
-    fallbackTorso.visible=false;
-    fallbackLegs.forEach(part=>part.visible=false);
-    fallbackArms.forEach(part=>part.visible=false);
-    walkRig=null;
     playerMixer=new THREE.AnimationMixer(model);
     const clips=gltf.animations||[];
     const walk=clips.find(clip=>/walk/i.test(clip.name));
     const run=clips.find(clip=>/run/i.test(clip.name));
     playerWalkAction=walk?playerMixer.clipAction(walk):null;
     playerRunAction=run?playerMixer.clipAction(run):playerWalkAction;
+    let rightHand=null,rightForearm=null,rightArm=null;
+    const bones=[];
+    model.traverse(obj=>{if(obj.isBone)bones.push(obj)});
+    const findBone=patterns=>bones.find(b=>patterns.some(re=>re.test(String(b.name||'').toLowerCase().replace(/[^a-z0-9]/g,''))));
+    rightHand=findBone([/^mixamorig?righthand$/, /^righthand$/, /^handright$/, /^handr$/, /^rhand$/, /^rightwrist$/]);
+    rightForearm=findBone([/^mixamorigrightforearm$/, /^rightforearm$/, /^forearmright$/, /^rightlowerarm$/, /^lowerarmright$/]);
+    rightArm=findBone([/^mixamorigrightarm$/, /^rightarm$/, /^armright$/, /^upperarmright$/, /^rightshoulder$/]);
+    toolArmRig=rightArm?[{upper:rightArm,lower:rightForearm,baseUpper:rightArm.rotation.clone(),baseLower:rightForearm?rightForearm.rotation.clone():null}]:[];
+    if(rightHand&&heldToolGroups[0]&&heldToolGroups[0].tool){
+     const tool=heldToolGroups[0].tool;
+     fallbackArms.forEach(part=>part.visible=false);
+     fallbackArms[1].remove(tool);
+     rightHand.add(tool);
+     tool.position.set(.015,-.055,.025);
+     tool.rotation.set(-.08,0,-.12);
+     tool.scale.setScalar(.82);
+     tool.userData.thirdPersonHolder=rightHand;
+     walkRig=null;
+    }else{
+     // If the downloaded rig has no named hand bone, keep the local right arm and its tool visible.
+     fallbackTorso.visible=false;
+     fallbackLegs.forEach(part=>part.visible=false);
+     fallbackArms.forEach((part,index)=>{part.visible=index===1});
+     walkRig=walkRig||null;
+     console.warn('Wildshore: mão direita não identificada no rig; mantendo braço e ferramenta locais.');
+    }
+    settled=true;clearTimeout(fallbackTimer);
     playerModelReady=true;
     setWildshorePlayerMotion(false);
-    let rightHand=null,rightForearm=null,rightArm=null;
-    model.traverse(obj=>{const name=String(obj.name||'').toLowerCase().replace(/[^a-z0-9]/g,'');if(!rightHand&&(obj.isBone||obj.isObject3D)&&(/righthand|handright|handr|rhand|rightwrist/.test(name)))rightHand=obj;if(!rightForearm&&(obj.isBone||obj.isObject3D)&&(/rightforearm|forearmright|rightlowerarm|lowerarmright/.test(name)))rightForearm=obj;if(!rightArm&&(obj.isBone||obj.isObject3D)&&(/rightarm|armright|upperarmright|rightshoulder/.test(name)))rightArm=obj});
-    toolArmRig=rightArm?[{upper:rightArm,lower:rightForearm,baseUpper:rightArm.rotation.clone(),baseLower:rightForearm?rightForearm.rotation.clone():null}]:[];
-    if(heldToolGroups[0]&&heldToolGroups[0].tool){
-     const tool=heldToolGroups[0].tool,holder=rightHand||rightForearm||rightArm;
-     fallbackArms[1].remove(tool);
-     if(holder){holder.add(tool);tool.position.set(rightHand?.015:.025,rightHand?-.105:-.28,rightHand?.035:.055);tool.rotation.set(rightHand?-.08:0,0,rightHand?-.12:-.08);tool.scale.setScalar(rightHand?.88:.78);tool.userData.thirdPersonHolder=holder}
-     else{const fallbackHand=new THREE.Group();fallbackHand.position.set(.28,.98,.02);model.add(fallbackHand);fallbackHand.add(tool);tool.position.set(0,-.18,.02);tool.rotation.set(0,0,-.08);tool.scale.setScalar(.78);tool.userData.thirdPersonHolder=fallbackHand;console.warn('Wildshore: osso da mão direita não encontrado; ferramenta presa a um suporte de mão de segurança.')}
-    }
     continuePendingSession();
    }catch(error){useFallback(error)}
   },undefined,useFallback);
