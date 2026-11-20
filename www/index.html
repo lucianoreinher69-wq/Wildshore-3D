@@ -435,8 +435,8 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     let leftArm=findBone([/^mixamorigleftarm$/, /^leftarm$/, /^armleft$/, /^upperarmleft$/, /^leftshoulder$/, /leftarm$/]);
     let leftForearm=findBone([/^mixamorigleftforearm$/, /^leftforearm$/, /^forearmleft$/, /^leftlowerarm$/, /^lowerarmleft$/, /leftforearm$/, /forearmleft$/]);
     toolArmRig=[];
-    if(rightArm)toolArmRig.push({side:'right',upper:rightArm,lower:rightForearm,baseUpper:rightArm.rotation.clone(),baseLower:rightForearm?rightForearm.rotation.clone():null,restZ:-.72,restElbow:.28});
-    if(leftArm)toolArmRig.push({side:'left',upper:leftArm,lower:leftForearm,baseUpper:leftArm.rotation.clone(),baseLower:leftForearm?leftForearm.rotation.clone():null,restZ:.72,restElbow:.28});
+    if(rightArm)toolArmRig.push({side:'right',upper:rightArm,lower:rightForearm,baseUpper:rightArm.rotation.clone(),baseLower:rightForearm?rightForearm.rotation.clone():null,restZ:-1.18,restElbow:.42});
+    if(leftArm)toolArmRig.push({side:'left',upper:leftArm,lower:leftForearm,baseUpper:leftArm.rotation.clone(),baseLower:leftForearm?leftForearm.rotation.clone():null,restZ:1.18,restElbow:.42});
     fallbackTorso.visible=false;
     fallbackLegs.forEach(part=>part.visible=false);
     const handHolder=rightHand||rightForearm||rightArm;
