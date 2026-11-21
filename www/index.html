@@ -383,7 +383,7 @@ function applyNaturalRestingArmPose(){
   const upperWorld=rig.upper.getWorldPosition(new THREE.Vector3());
   const upperModel=rig.model.worldToLocal(upperWorld.clone());
   const outward=Math.sign(upperModel.x)||(rig.side==='right'?1:-1);
-  const targetModel=new THREE.Vector3(outward*.27,-.96,.04).normalize();
+  const targetModel=new THREE.Vector3(outward*.43,-.90,.10).normalize();
   const modelWorldQ=rig.model.getWorldQuaternion(new THREE.Quaternion());
   const parentWorldQ=rig.upper.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
   const targetParent=targetModel.applyQuaternion(modelWorldQ).applyQuaternion(parentWorldQ).normalize();
@@ -470,14 +470,15 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     const handHolder=rightHand||rightForearm||rightArm;
     if(handHolder&&heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
-     // Preserva a transformação mundial que a ferramenta já tinha no braço
-     // provisório ao transferi-la para o osso da mão do personagem GLB.
-     // Object3D.attach recalcula posição/rotação/escala locais sem deslocá-la.
-     model.updateMatrixWorld(true);
-     root.updateMatrixWorld(true);
-     tool.updateMatrixWorld(true);
-     handHolder.attach(tool);
-     tool.userData.baseZ=tool.position.z;
+     // Posiciona a origem do grupo diretamente no pivô da mão.
+     // A geometria do cabo parte desse pivô para baixo; compensamos somente
+     // a escala interna do GLB para manter o tamanho mundial da ferramenta.
+     const modelScale=Math.abs(model.scale.x)||1;
+     handHolder.add(tool);
+     tool.position.set(0,0,0);
+     tool.rotation.set(-.08,0,-.12);
+     tool.scale.setScalar(1/modelScale);
+     tool.userData.baseZ=0;
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
      tool.traverse(part=>{if(part.isMesh){part.frustumCulled=false;part.renderOrder=20}});
      tool.userData.thirdPersonHolder=handHolder;
