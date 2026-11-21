@@ -461,7 +461,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      const jointWorld=joint.getWorldPosition(new THREE.Vector3());
      const localJoint=upper.worldToLocal(jointWorld.clone());
      if(localJoint.lengthSq()<1e-8)return;
-     toolArmRig.push({side,model,upper,lower:joint,baseUpper:upper.quaternion.clone(),baseLower:joint.quaternion.clone(),localDir:localJoint.normalize()});
+     toolArmRig.push({side,model,upper,lower:joint,baseUpper:upper.quaternion.clone(),baseLower:joint.quaternion.clone(),localDir:localJoint.normalize(),restZ:0,restElbow:0});
     };
     makeArmRig('right',rightArm,rightForearm);
     makeArmRig('left',leftArm,leftForearm);
