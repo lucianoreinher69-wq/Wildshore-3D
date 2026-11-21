@@ -383,7 +383,7 @@ function applyNaturalRestingArmPose(){
   const upperWorld=rig.upper.getWorldPosition(new THREE.Vector3());
   const upperModel=rig.model.worldToLocal(upperWorld.clone());
   const outward=Math.sign(upperModel.x)||(rig.side==='right'?1:-1);
-  const targetModel=new THREE.Vector3(-outward*.27,-.96,.04).normalize();
+  const targetModel=new THREE.Vector3(outward*.27,-.96,.04).normalize();
   const modelWorldQ=rig.model.getWorldQuaternion(new THREE.Quaternion());
   const parentWorldQ=rig.upper.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
   const targetParent=targetModel.applyQuaternion(modelWorldQ).applyQuaternion(parentWorldQ).normalize();
@@ -471,19 +471,23 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     if(handHolder&&heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
      if(tool.parent)tool.parent.remove(tool);
-     // Anexa ao osso direito e mantém a ferramenta fora do braço provisório.
+     // O GLB possui escala própria dentro do personagem. Compensamos essa
+     // escala para a ferramenta manter o tamanho do modelo provisório.
+     const modelScale=Math.abs(model.scale.x)||1;
+     const inverseModelScale=1/modelScale;
      handHolder.add(tool);
-     // O punho deve coincidir com a empunhadura: ela fica a ~1.16 unidades
-     // abaixo da origem do grupo da ferramenta, portanto compensamos esse deslocamento.
-     tool.position.set(0.015,1.16,.025);
+     // Converte o deslocamento da empunhadura para o espaço local do GLB.
+     tool.position.set(.015*inverseModelScale,1.16*inverseModelScale,.025*inverseModelScale);
+     tool.userData.baseZ=tool.position.z;
      tool.rotation.set(-.08,0,-.12);
-     tool.scale.setScalar(1.0);
+     tool.scale.setScalar(inverseModelScale);
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
      tool.traverse(part=>{if(part.isMesh){part.frustumCulled=false;part.renderOrder=20}});
      tool.userData.thirdPersonHolder=handHolder;
+     tool.userData.thirdPersonScaleCompensated=true;
      fallbackArms.forEach(part=>part.visible=false);
      walkRig=null;
-     console.info('Wildshore: ferramenta de terceira pessoa ligada ao osso',handHolder.name,'| mão:',rightHand&&rightHand.name,'| antebraço:',rightForearm&&rightForearm.name);
+     console.info('Wildshore: ferramenta de terceira pessoa ligada à mão com escala compensada',handHolder.name,'| escala GLB:',modelScale,'| mão:',rightHand&&rightHand.name,'| antebraço:',rightForearm&&rightForearm.name);
     }else{
      // Não esconder os braços se o rig não oferecer um osso de mão utilizável.
      fallbackArms.forEach((part,index)=>{part.visible=index===1});
