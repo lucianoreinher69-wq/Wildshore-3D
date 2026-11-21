@@ -477,7 +477,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      // acompanha posição e rotação do jogador sem depender dos ossos.
      root.add(tool);
      tool.rotation.set(-.08,0,-.12);
-     tool.scale.setScalar(1);
+     tool.scale.setScalar(1.8);
      tool.position.set(0,0,0);
      tool.userData.baseZ=0;
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
@@ -583,7 +583,7 @@ function updateThirdPersonToolAnchors(){
   const calibration=new THREE.Quaternion().setFromEuler(new THREE.Euler(-.08,0,-.12));
   const toolQuaternion=handLocalQuaternion.multiply(calibration);
   // O centro da empunhadura fica exatamente no pivô da mão direita.
-  const gripOffset=new THREE.Vector3(0,-1.16,.04).applyQuaternion(toolQuaternion);
+  const gripOffset=new THREE.Vector3(0,-1.16,.04).multiplyScalar(tool.scale.x).applyQuaternion(toolQuaternion);
   tool.position.copy(handPosition).sub(gripOffset);
   tool.quaternion.copy(toolQuaternion);
  });
