@@ -383,7 +383,7 @@ function applyNaturalRestingArmPose(){
   const upperWorld=rig.upper.getWorldPosition(new THREE.Vector3());
   const upperModel=rig.model.worldToLocal(upperWorld.clone());
   const outward=Math.sign(upperModel.x)||(rig.side==='right'?1:-1);
-  const targetModel=new THREE.Vector3(outward*.43,-.90,.10).normalize();
+  const targetModel=new THREE.Vector3(outward*.62,-.78,.12).normalize();
   const modelWorldQ=rig.model.getWorldQuaternion(new THREE.Quaternion());
   const parentWorldQ=rig.upper.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
   const targetParent=targetModel.applyQuaternion(modelWorldQ).applyQuaternion(parentWorldQ).normalize();
@@ -475,10 +475,12 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      // a escala interna do GLB para manter o tamanho mundial da ferramenta.
      const modelScale=Math.abs(model.scale.x)||1;
      handHolder.add(tool);
-     tool.position.set(0,0,0);
+     // O ponto de empunhadura fica acima da origem geométrica do grupo:
+     // assim a mão segura o cabo, em vez de a ferramenta ficar abaixo do pulso.
+     tool.position.set(.015/modelScale,1.16/modelScale,.025/modelScale);
      tool.rotation.set(-.08,0,-.12);
      tool.scale.setScalar(1/modelScale);
-     tool.userData.baseZ=0;
+     tool.userData.baseZ=tool.position.z;
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
      tool.traverse(part=>{if(part.isMesh){part.frustumCulled=false;part.renderOrder=20}});
      tool.userData.thirdPersonHolder=handHolder;
