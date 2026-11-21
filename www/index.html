@@ -468,32 +468,30 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     fallbackTorso.visible=false;
     fallbackLegs.forEach(part=>part.visible=false);
     const handHolder=rightHand||rightForearm||rightArm;
-    if(handHolder&&heldToolGroups[0]&&heldToolGroups[0].tool){
+    if(heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
-     // Anexa ao melhor osso disponível do braço direito. A origem do grupo
-     // coincide com o pivô do osso; não aplicar deslocamentos grandes aqui,
-     // pois eles afastam a ferramenta do corpo em rigs com escalas diferentes.
-     const modelScale=Math.abs(model.scale.x)||1;
-     handHolder.add(tool);
-     // A ferramenta é compensada pela escala do GLB. A empunhadura fica
-     // em Y=-1.18 e Z=0.04 no grupo; aplicar o mesmo fator ao deslocamento
-     // mantém o cabo junto à palma mesmo quando o modelo é redimensionado.
+     // TERCEIRA PESSOA: manter a ferramenta no grupo raiz do jogador.
+     // Anexá-la ao osso do GLB fazia a visibilidade depender dos eixos e da
+     // escala local do rig; o objeto podia ficar dentro/fora da câmera mesmo
+     // com visible=true. O grupo raiz usa a mesma escala do personagem e
+     // acompanha posição e rotação do jogador sem depender dos ossos.
+     root.add(tool);
      tool.rotation.set(-.08,0,-.12);
-     tool.scale.setScalar(1/modelScale);
-     tool.position.set(0,1.18/modelScale,-.04/modelScale);
+     tool.scale.setScalar(1);
+     // O cabo termina na altura aproximada da mão direita do personagem.
+     tool.position.set(.42,1.78,.16);
      tool.userData.baseZ=tool.position.z;
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
-     tool.traverse(part=>{if(part.isMesh){part.frustumCulled=false;part.renderOrder=20}});
-     tool.userData.thirdPersonHolder=handHolder;
-     tool.userData.thirdPersonScaleCompensated=true;
+     tool.traverse(part=>{if(part.isMesh){part.frustumCulled=false;part.renderOrder=30}});
+     tool.userData.thirdPersonHolder=root;
+     tool.userData.thirdPersonScaleCompensated=false;
      fallbackArms.forEach(part=>part.visible=false);
      walkRig=null;
-     console.info('Wildshore: ferramenta transferida para a mão',handHolder.name,'ossos:',bones.map(b=>b.name));
+     console.info('Wildshore: ferramenta 3P ligada ao jogador; osso direito detectado:',handHolder&&handHolder.name||'não encontrado');
     }else{
-     // Não esconder os braços se o rig não oferecer um osso de mão utilizável.
      fallbackArms.forEach((part,index)=>{part.visible=index===1});
      walkRig=walkRig||null;
-     console.warn('Wildshore: mão direita não identificada no rig; mantendo braço local. Ossos encontrados:',bones.map(b=>b.name));
+     console.warn('Wildshore: grupo visual de ferramenta não encontrado. Ossos:',bones.map(b=>b.name));
     }
     settled=true;clearTimeout(fallbackTimer);
     playerModelFailed=false;playerModelReady=true;
