@@ -475,7 +475,9 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      // pois eles afastam a ferramenta do corpo em rigs com escalas diferentes.
      const modelScale=Math.abs(model.scale.x)||1;
      handHolder.add(tool);
-     tool.position.set(0,0,0);
+     // Alinha o centro da empunhadura (Y=-1.16 no grupo) ao pivô da mão.
+     // Assim a palma segura o cabo, em vez de a ferramenta ficar abaixo do pulso.
+     tool.position.set(0,1.16,0);
      tool.rotation.set(-.08,0,-.12);
      tool.scale.setScalar(1/modelScale);
      tool.userData.baseZ=tool.position.z;
