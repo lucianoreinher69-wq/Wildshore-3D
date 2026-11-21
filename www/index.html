@@ -383,7 +383,7 @@ function applyNaturalRestingArmPose(){
   const upperWorld=rig.upper.getWorldPosition(new THREE.Vector3());
   const upperModel=rig.model.worldToLocal(upperWorld.clone());
   const outward=Math.sign(upperModel.x)||(rig.side==='right'?1:-1);
-  const targetModel=new THREE.Vector3(outward*.78,-.62,.14).normalize();
+  const targetModel=new THREE.Vector3(outward*.24,-.96,.10).normalize();
   const modelWorldQ=rig.model.getWorldQuaternion(new THREE.Quaternion());
   const parentWorldQ=rig.upper.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
   const targetParent=targetModel.applyQuaternion(modelWorldQ).applyQuaternion(parentWorldQ).normalize();
@@ -467,7 +467,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     makeArmRig('left',leftArm,leftForearm);
     fallbackTorso.visible=false;
     fallbackLegs.forEach(part=>part.visible=false);
-    const handHolder=rightHand||rightForearm||rightArm;
+    const handHolder=rightHand;
     if(handHolder&&heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
      // Posiciona a origem do grupo diretamente no pivô da mão.
