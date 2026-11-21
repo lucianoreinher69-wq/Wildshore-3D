@@ -475,11 +475,12 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      // pois eles afastam a ferramenta do corpo em rigs com escalas diferentes.
      const modelScale=Math.abs(model.scale.x)||1;
      handHolder.add(tool);
-     // Alinha o centro da empunhadura (Y=-1.16 no grupo) ao pivô da mão.
-     // Assim a palma segura o cabo, em vez de a ferramenta ficar abaixo do pulso.
-     tool.position.set(0,1.16,0);
+     // A ferramenta é compensada pela escala do GLB. A empunhadura fica
+     // em Y=-1.18 e Z=0.04 no grupo; aplicar o mesmo fator ao deslocamento
+     // mantém o cabo junto à palma mesmo quando o modelo é redimensionado.
      tool.rotation.set(-.08,0,-.12);
      tool.scale.setScalar(1/modelScale);
+     tool.position.set(0,1.18/modelScale,-.04/modelScale);
      tool.userData.baseZ=tool.position.z;
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
      tool.traverse(part=>{if(part.isMesh){part.frustumCulled=false;part.renderOrder=20}});
