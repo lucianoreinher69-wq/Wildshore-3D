@@ -349,7 +349,7 @@ function createPlayerCharacter(){
  for(let grain=0;grain<5;grain++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.184,.006,5,16),grain%2?malletDark:malletEnd);ring.rotation.y=Math.PI/2;ring.position.x=(grain-2)*.085;hammerHead.add(ring)}
  const malletBinding=new THREE.Mesh(new THREE.TorusGeometry(.082,.012,6,16),axeBindingMat);malletBinding.rotation.x=Math.PI/2;malletBinding.position.set(0,-.02,.015);hammerHead.add(malletBinding);
  hammerHead.visible=false;tool.add(hammerHead);
- const spearHead=new THREE.Group();spearHead.position.set(0,topY,.04);spearHead.rotation.z=-.18;
+ const spearHead=new THREE.Group();spearHead.position.set(.16,topY+.05,.04);spearHead.rotation.z=-.18; // base da ponta alinhada à extremidade inclinada do cabo.
  // Ponta no mesmo eixo inclinado do cabo, encaixada sobre a extremidade e não na lateral.
  const spearPoint=new THREE.Mesh(new THREE.ConeGeometry(.072,.58,8),woodHighlight);spearPoint.position.y=.29;spearHead.add(spearPoint);
  const spearBase=new THREE.Mesh(new THREE.CylinderGeometry(.034,.04,.12,10),woodCut);spearBase.position.y=-.025;spearHead.add(spearBase);
