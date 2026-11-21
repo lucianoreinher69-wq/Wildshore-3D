@@ -470,27 +470,21 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     const handHolder=rightHand||rightForearm||rightArm;
     if(handHolder&&heldToolGroups[0]&&heldToolGroups[0].tool){
      const tool=heldToolGroups[0].tool;
-     if(tool.parent)tool.parent.remove(tool);
-     // O GLB possui escala própria dentro do personagem. Compensamos essa
-     // escala para a ferramenta manter o tamanho do modelo provisório.
-     const modelScale=Math.abs(model.scale.x)||1;
-     const inverseModelScale=1/modelScale;
-     handHolder.add(tool);
-     // O grupo da ferramenta passa a ser filho direto do osso da mão.
-     // Nesse espaço local, reaplicar o antigo offset do ombro (1.16) deslocava
-     // a ferramenta para longe do personagem. A origem do grupo fica no pulso;
-     // a geometria do cabo já se estende a partir dessa origem.
-     tool.position.set(0,0,0);
-     tool.userData.baseZ=0;
-     tool.rotation.set(-.08,0,-.12);
-     tool.scale.setScalar(inverseModelScale);
+     // Preserva a transformação mundial que a ferramenta já tinha no braço
+     // provisório ao transferi-la para o osso da mão do personagem GLB.
+     // Object3D.attach recalcula posição/rotação/escala locais sem deslocá-la.
+     model.updateMatrixWorld(true);
+     root.updateMatrixWorld(true);
+     tool.updateMatrixWorld(true);
+     handHolder.attach(tool);
+     tool.userData.baseZ=tool.position.z;
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
      tool.traverse(part=>{if(part.isMesh){part.frustumCulled=false;part.renderOrder=20}});
      tool.userData.thirdPersonHolder=handHolder;
      tool.userData.thirdPersonScaleCompensated=true;
      fallbackArms.forEach(part=>part.visible=false);
      walkRig=null;
-     console.info('Wildshore: ferramenta de terceira pessoa ligada à mão com escala compensada',handHolder.name,'| escala GLB:',modelScale,'| mão:',rightHand&&rightHand.name,'| antebraço:',rightForearm&&rightForearm.name);
+     console.info('Wildshore: ferramenta transferida para a mão preservando a transformação mundial',handHolder.name);
     }else{
      // Não esconder os braços se o rig não oferecer um osso de mão utilizável.
      fallbackArms.forEach((part,index)=>{part.visible=index===1});
