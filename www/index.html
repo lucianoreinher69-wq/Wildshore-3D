@@ -476,9 +476,12 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
      const modelScale=Math.abs(model.scale.x)||1;
      const inverseModelScale=1/modelScale;
      handHolder.add(tool);
-     // Converte o deslocamento da empunhadura para o espaço local do GLB.
-     tool.position.set(.015*inverseModelScale,1.16*inverseModelScale,.025*inverseModelScale);
-     tool.userData.baseZ=tool.position.z;
+     // O grupo da ferramenta passa a ser filho direto do osso da mão.
+     // Nesse espaço local, reaplicar o antigo offset do ombro (1.16) deslocava
+     // a ferramenta para longe do personagem. A origem do grupo fica no pulso;
+     // a geometria do cabo já se estende a partir dessa origem.
+     tool.position.set(0,0,0);
+     tool.userData.baseZ=0;
      tool.rotation.set(-.08,0,-.12);
      tool.scale.setScalar(inverseModelScale);
      tool.visible=!!state.equippedTool&&state.cameraMode!=='first';
