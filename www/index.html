@@ -193,18 +193,22 @@ function createOceanWorld(){
    float c=sin((x+y)*.155+uTime*1.62)*.18;
    float d=sin(x*.31-y*.22+uTime*2.05)*.065;
    float e=sin(y*.43+x*.19-uTime*2.35)*.025;
-   float h=(a+b+c+d+e)*uWaveScale;
+   float radius=length(vec2(x,y));
+   // Dampen only the final approach to the beach; preserve full open-ocean waves.
+   float shoreWave=smoothstep(55.0,82.0,radius);
+   shoreWave=mix(.12,1.0,shoreWave);
+   float h=(a+b+c+d+e)*uWaveScale*shoreWave;
    p.z+=h;
    float dx=(cos(x*.052+y*.018+uTime*.82)*.72*.052
      -cos(y*.091-x*.027-uTime*1.18)*.42*.027
      +cos((x+y)*.155+uTime*1.62)*.18*.155
      +cos(x*.31-y*.22+uTime*2.05)*.065*.31
-     +cos(y*.43+x*.19-uTime*2.35)*.025*.19)*uWaveScale;
+     +cos(y*.43+x*.19-uTime*2.35)*.025*.19)*uWaveScale*shoreWave;
    float dy=(cos(x*.052+y*.018+uTime*.82)*.72*.018
      +cos(y*.091-x*.027-uTime*1.18)*.42*.091
      +cos((x+y)*.155+uTime*1.62)*.18*.155
      -cos(x*.31-y*.22+uTime*2.05)*.065*.22
-     +cos(y*.43+x*.19-uTime*2.35)*.025*.43)*uWaveScale;
+     +cos(y*.43+x*.19-uTime*2.35)*.025*.43)*uWaveScale*shoreWave;
    vec4 world=modelMatrix*vec4(p,1.0);
    vWorldPosition=world.xyz;
    vNormal=normalize(mat3(modelMatrix)*vec3(-dx,-dy,1.0));
