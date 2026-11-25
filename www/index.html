@@ -118,11 +118,11 @@ window.addEventListener('error',function(e){
 });
 </script>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/"}}</script>
-<script>window.__wildshoreGLTFLoaderReady=import('three/addons/loaders/GLTFLoader.js').then(module=>module.GLTFLoader);</script>
+<script>window.__wildshoreGLTFLoaderReady=import('three/addons/loaders/GLTFLoader.js').then(module=>module.GLTFLoader);window.__wildshoreSkeletonUtilsReady=import('three/addons/utils/SkeletonUtils.js').then(module=>module);</script>
 <script src="vendor/three.min.js"></script>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id);const setDebug=t=>{const el=$('debug');if(el)el.textContent=String(t)};let scene,camera,renderer,player,clock,firstPersonArms=[],heldToolGroups=[],terrain=[],resources=[],animals=[],birds=[],trapGroups=[],shelterGroup=null,shelterGroups=[],raftGroup=null,raftGroups=[],campfireGroup=null,campfireGroups=[],campfireFlame=null,campfireLight=null,campfireLights=[],collectorGroup=null,collectorGroups=[],houseGroup=null,chestGroups=[],islandIndex=0,started=false,gameReady=false,swimming=false,playerSwimRig=null,move={x:0,z:0},lastSave=0,sunLight=null,hemiLight=null,fillLight=null,moonLight=null,sunVisual=null,moonVisual=null,moonShadow=null,starField=null,starMaterial=null,weatherClouds=[],rainPoints=null,rainPositions=null,weatherClock=0,vegetationLandmarks=[],oceanTime=0,oceanSurface=null,sharks=[],oceanFishSchools=[],isSwimming=false,wasSwimming=false;
+const $=id=>document.getElementById(id);const setDebug=t=>{const el=$('debug');if(el)el.textContent=String(t)};let scene,camera,renderer,player,clock,firstPersonArms=[],heldToolGroups=[],terrain=[],resources=[],animals=[],birds=[],trapGroups=[],shelterGroup=null,shelterGroups=[],raftGroup=null,raftGroups=[],campfireGroup=null,campfireGroups=[],campfireFlame=null,campfireLight=null,campfireLights=[],collectorGroup=null,collectorGroups=[],houseGroup=null,chestGroups=[],islandIndex=0,started=false,gameReady=false,swimming=false,move={x:0,z:0},lastSave=0,sunLight=null,hemiLight=null,fillLight=null,moonLight=null,sunVisual=null,moonVisual=null,moonShadow=null,starField=null,starMaterial=null,weatherClouds=[],rainPoints=null,rainPositions=null,weatherClock=0,vegetationLandmarks=[],oceanTime=0,oceanSurface=null,sharks=[],oceanFishSchools=[],isSwimming=false,wasSwimming=false;
 const state={cameraMode:'third',hp:100,hunger:100,thirst:100,stam:100,wood:0,axeWood:2,stone:0,fiber:0,fruit:0,coconut:0,rawWater:0,cleanWater:0,waterTimer:0,collectorStored:0,shelters:[],campfires:[],collectors:[],rafts:[],tools:{axe:false,pickaxe:false,spear:false,hammer:false},equippedTool:'',waterCollector:false,waterCollectorIsland:-1,waterCollectorX:0,waterCollectorZ:0,houseStage:0,houseBuildStep:0,houseParts:[],houseIsland:-1,houseX:0,houseZ:0,chests:[],fish:0,cookedFish:0,meat:0,cookedMeat:0,traps:[],campfire:false,campfireIsland:-1,campfireX:0,campfireZ:0,shelter:false,raft:false,onRaft:false,x:0,z:0,island:0,dayTime:8,dayNumber:1,weather:'clear',weatherTimer:0};
 const freshGameState=JSON.parse(JSON.stringify(state));
 const islands=['Costa Verde','Ilha das Palmeiras','Atol Azul','Ilha Vulcânica','Ilha dos Corais','Ilha da Neblina'];
@@ -389,41 +389,40 @@ function createPlayerCharacter(){
  return g;
 }
 function setWildshorePlayerMotion(moving,intensity=0){
- const next=!moving?null:(intensity>.82&&playerRunAction?playerRunAction:playerWalkAction);
+ const swimmingNow=isSwimming&&!state.onRaft;
+ const next=swimmingNow?(moving?playerSwimAction:playerSwimIdleAction):(!moving?null:(intensity>.82&&playerRunAction?playerRunAction:playerWalkAction));
  if(next===playerActiveAction)return;
- if(next){next.reset();next.enabled=true;next.setEffectiveTimeScale(1);next.setEffectiveWeight(1);next.play();if(playerActiveAction)next.crossFadeFrom(playerActiveAction,.2,false)}
- else if(playerActiveAction)playerActiveAction.fadeOut(.18);
+ if(next){next.reset();next.enabled=true;next.setEffectiveTimeScale(1);next.setEffectiveWeight(1);next.play();if(playerActiveAction)next.crossFadeFrom(playerActiveAction,.28,false)}
+ else if(playerActiveAction)playerActiveAction.fadeOut(.22);
  playerActiveAction=next;
 }
-function setupWildshoreSwimRig(model){
- const findBone=name=>{let found=null;model.traverse(obj=>{if(!found&&obj.isBone&&String(obj.name||'').toLowerCase().replace(/[^a-z0-9]/g,'')===name.toLowerCase())found=obj});return found};
- const entry=name=>{const bone=findBone(name);return bone?{bone,rest:bone.rotation.clone()}:null};
- playerSwimRig={hips:entry('Hips'),spine:entry('Spine'),spine01:entry('Spine01'),spine02:entry('Spine02'),head:entry('Head'),leftArm:entry('LeftArm'),leftForeArm:entry('LeftForeArm'),rightArm:entry('RightArm'),rightForeArm:entry('RightForeArm'),leftLeg:entry('LeftUpLeg'),leftKnee:entry('LeftLeg'),rightLeg:entry('RightUpLeg'),rightKnee:entry('RightLeg')};
-}
-function updateWildshoreSwimRig(time,active,moving){
- if(!playerSwimRig)return;
- const r=playerSwimRig;
- const wave=Math.sin(time* (moving?3.8:1.8));
- const opposite=Math.sin(time*(moving?3.8:1.8)+Math.PI);
- const stroke=moving?1:.22;
- const set=(part,x=0,y=0,z=0)=>{if(!part)return;part.bone.rotation.set(part.rest.x+x,part.rest.y+y,part.rest.z+z)};
- if(!active){
-  Object.values(r).forEach(part=>{if(part&&part.bone&&part.rest)part.bone.rotation.copy(part.rest)});
-  return;
- }
- set(r.hips,0,0,Math.sin(time*1.2)*.025);
- set(r.spine,-.08+Math.sin(time*2.1)*.025,0,Math.sin(time*1.1)*.025);
- set(r.spine01,-.06+Math.sin(time*2.1+.3)*.025);
- set(r.spine02,-.035+Math.sin(time*2.1+.6)*.02);
- set(r.head,.025+Math.sin(time*1.1)*.018);
- set(r.leftArm,-.72+wave*.62*stroke,0,.12);
- set(r.rightArm,-.72+opposite*.62*stroke,0,-.12);
- set(r.leftForeArm,-.48+Math.max(0,-wave)*.72*stroke);
- set(r.rightForeArm,-.48+Math.max(0,-opposite)*.72*stroke);
- set(r.leftLeg,.34+opposite*.48*stroke);
- set(r.rightLeg,.34+wave*.48*stroke);
- set(r.leftKnee,.28+Math.max(0,wave)*.42*stroke);
- set(r.rightKnee,.28+Math.max(0,opposite)*.42*stroke);
+function loadWildshoreSwimAnimations(targetModel){
+ const loaderReady=window.__wildshoreGLTFLoaderReady,retargetReady=window.__wildshoreSkeletonUtilsReady;
+ if(!loaderReady||!retargetReady)return;
+ Promise.all([loaderReady,retargetReady]).then(([GLTFLoader,SkeletonUtils])=>{
+  const loader=new GLTFLoader();loader.setCrossOrigin('anonymous');
+  loader.load('./assets/characters/quaternius-universal-animation-library.glb',gltf=>{
+   try{
+    let targetSkin=null,sourceSkin=null;
+    targetModel.traverse(obj=>{if(!targetSkin&&obj.isSkinnedMesh)targetSkin=obj});
+    gltf.scene.traverse(obj=>{if(!sourceSkin&&obj.isSkinnedMesh)sourceSkin=obj});
+    if(!targetSkin||!sourceSkin)throw new Error('Não foi possível localizar os esqueletos para retarget');
+    const names={Hips:'pelvis',Spine:'spine_01',Spine01:'spine_02',Spine02:'spine_03',neck:'neck_01',Head:'Head',LeftShoulder:'clavicle_l',LeftArm:'upperarm_l',LeftForeArm:'lowerarm_l',LeftHand:'hand_l',RightShoulder:'clavicle_r',RightArm:'upperarm_r',RightForeArm:'lowerarm_r',RightHand:'hand_r',LeftUpLeg:'thigh_l',LeftLeg:'calf_l',LeftFoot:'foot_l',LeftToeBase:'ball_l',RightUpLeg:'thigh_r',RightLeg:'calf_r',RightFoot:'foot_r',RightToeBase:'ball_r'};
+    const clips=gltf.animations||[];
+    const idle=clips.find(clip=>/swim.*idle|idle.*swim/i.test(clip.name||''));
+    const forward=clips.find(clip=>/swim.*(fwd|forward)|(fwd|forward).*swim/i.test(clip.name||''));
+    if(!idle||!forward)throw new Error('Clipes Swim_Idle_Loop e Swim_Fwd_Loop não encontrados');
+    const options={hip:'pelvis',names,preserveBoneMatrix:true,preserveBonePositions:true,useFirstFramePosition:false,scale:1};
+    const idleClip=SkeletonUtils.retargetClip(targetSkin,sourceSkin.skeleton,idle,options);
+    const forwardClip=SkeletonUtils.retargetClip(targetSkin,sourceSkin.skeleton,forward,options);
+    idleClip.name='Wildshore_Swim_Idle';forwardClip.name='Wildshore_Swim_Forward';
+    playerSwimIdleAction=playerMixer.clipAction(idleClip);playerSwimAction=playerMixer.clipAction(forwardClip);
+    playerSwimIdleAction.setLoop(THREE.LoopRepeat,Infinity);playerSwimAction.setLoop(THREE.LoopRepeat,Infinity);
+    setWildshorePlayerMotion(Math.hypot(move.x,move.z)>.05,Math.hypot(move.x,move.z));
+    console.info('Wildshore: animações de natação Quaternius retargetadas com sucesso.');
+   }catch(error){console.warn('Wildshore: não foi possível adaptar as animações de natação.',error)}
+  },undefined,error=>console.warn('Wildshore: biblioteca de natação indisponível.',error));
+ }).catch(error=>console.warn('Wildshore: utilitário de retarget indisponível.',error));
 }
 function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArms){
  const ready=window.__wildshoreGLTFLoaderReady;
@@ -436,7 +435,6 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
    try{
     const model=gltf.scene;
     model.traverse(obj=>{if(obj.isMesh){obj.frustumCulled=true;obj.castShadow=true;obj.receiveShadow=true}});
-    setupWildshoreSwimRig(model);
     let bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());
     if(!Number.isFinite(size.y)||size.y<.25)throw new Error('Altura inválida no modelo 3D');
     model.scale.setScalar(1.78/size.y);
@@ -450,6 +448,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
     fallbackArms.forEach(part=>part.visible=false);
     walkRig=null;
     playerMixer=new THREE.AnimationMixer(model);
+    loadWildshoreSwimAnimations(model);
     const clips=gltf.animations||[];
     const walk=clips.find(clip=>/walk/i.test(clip.name));
     const run=clips.find(clip=>/run/i.test(clip.name));
@@ -519,7 +518,7 @@ function setEquippedToolVisual(){const key=state.equippedTool||'';if(heldToolGro
 function createStarfield(){const positions=[],colors=[],radius=4200;const bandNormal=new THREE.Vector3(.58,.48,-.66).normalize();const axisA=new THREE.Vector3().crossVectors(bandNormal,new THREE.Vector3(0,1,0)).normalize();const axisB=new THREE.Vector3().crossVectors(bandNormal,axisA).normalize();for(let i=0;i<1900;i++){let d;if(i<620){const a=Math.random()*Math.PI*2,w=(Math.random()-.5)*.13;d=axisA.clone().multiplyScalar(Math.cos(a)).add(axisB.clone().multiplyScalar(Math.sin(a))).add(bandNormal.clone().multiplyScalar(w)).normalize()}else{const y=Math.random()*1.8-.9,a=Math.random()*Math.PI*2,r=Math.sqrt(1-y*y);d=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r)}positions.push(d.x*radius,d.y*radius,d.z*radius);const bright=.45+Math.random()*.55;colors.push(bright,bright*(.94+Math.random()*.06),bright*(.82+Math.random()*.18))}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));starMaterial=new THREE.PointsMaterial({size:2.1,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,depthWrite:false,fog:false});starField=new THREE.Points(geo,starMaterial);starField.frustumCulled=false;scene.add(starField)}
 function createCelestialBodies(){createStarfield();const sunGroup=new THREE.Group();const sunCore=new THREE.Mesh(new THREE.SphereGeometry(4.1,24,18),new THREE.MeshBasicMaterial({color:0xffe7a1,fog:false}));sunGroup.add(sunCore);const sunGlow=new THREE.Mesh(new THREE.SphereGeometry(6.4,20,14),new THREE.MeshBasicMaterial({color:0xffc66d,transparent:true,opacity:.18,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));sunGroup.add(sunGlow);scene.add(sunGroup);sunVisual=sunGroup;const moonGroup=new THREE.Group();const moonCore=new THREE.Mesh(new THREE.SphereGeometry(3.15,24,18),new THREE.MeshStandardMaterial({color:0xe4e9ef,emissive:0x53627d,emissiveIntensity:.42,roughness:1,fog:false}));moonGroup.add(moonCore);const shadow=new THREE.Mesh(new THREE.SphereGeometry(3.22,24,18),new THREE.MeshBasicMaterial({color:0x071323,fog:false}));moonGroup.add(shadow);moonShadow=shadow;scene.add(moonGroup);moonVisual=moonGroup;}
 function init(){scene=new THREE.Scene();scene.background=new THREE.Color(0x79c8df);scene.fog=new THREE.Fog(0x79c8df,260,3200);camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,.1,7000);scene.add(camera);renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.setSize(innerWidth,innerHeight);$('game').appendChild(renderer.domElement);hemiLight=new THREE.HemisphereLight(0xd9f7ff,0x53613c,2.15);scene.add(hemiLight);sunLight=new THREE.DirectionalLight(0xffedc5,2.35);sunLight.position.set(-20,35,15);scene.add(sunLight);fillLight=new THREE.DirectionalLight(0x8bdcff,.55);fillLight.position.set(18,12,-18);scene.add(fillLight);moonLight=new THREE.DirectionalLight(0x9bb9ed,0);scene.add(moonLight);createCelestialBodies();createWeatherEffects();player=createPlayerCharacter();scene.add(player);camera.position.set(0,5,8);camera.lookAt(0,0,0);clock=new THREE.Clock();renderer.render(scene,camera);window.addEventListener('resize',resize);renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();say('Recarregando os gráficos…')});renderer.domElement.addEventListener('webglcontextrestored',()=>{resize();startAnimationLoop();say('Gráficos restaurados!')});startAnimationLoop()}
-let resizeQueued=false,walkPhase=0,frameCount=0,pulseCount=0,toolActionTime=0,toolActionKind=''; let walkParts=[],walkRig=null,playerMixer=null,playerWalkAction=null,playerRunAction=null,playerActiveAction=null,playerModelReady=false;let cameraYaw=0,cameraPitch=0;setInterval(()=>{pulseCount++;const el=$('pulseValue');if(el)el.textContent=String(pulseCount)},500);
+let resizeQueued=false,walkPhase=0,frameCount=0,pulseCount=0,toolActionTime=0,toolActionKind=''; let walkParts=[],walkRig=null,playerMixer=null,playerWalkAction=null,playerRunAction=null,playerSwimIdleAction=null,playerSwimAction=null,playerActiveAction=null,playerModelReady=false;let cameraYaw=0,cameraPitch=0;setInterval(()=>{pulseCount++;const el=$('pulseValue');if(el)el.textContent=String(pulseCount)},500);
 function resize(){if(!camera||!renderer)return;if(resizeQueued)return;resizeQueued=true;requestAnimationFrame(()=>{resizeQueued=false;const w=Math.max(1,document.documentElement.clientWidth||window.innerWidth);const h=Math.max(1,document.documentElement.clientHeight||window.innerHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,true);renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.15));renderer.render(scene,camera)})}
 window.addEventListener('orientationchange',()=>{setTimeout(resize,180);setTimeout(resize,650)});
 if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);
