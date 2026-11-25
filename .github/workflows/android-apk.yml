@@ -31,16 +31,6 @@ jobs:
           mkdir -p www/assets/characters
           cp /tmp/wildshore-apk/camper_rigged_animated.glb www/assets/characters/camper_rigged_animated.glb
 
-      - name: Download verified CC0 Quaternius swim animations
-        run: |
-          curl -fL --retry 3 --retry-delay 2 \
-            https://raw.githubusercontent.com/Seyamalam/blood-league-kickoff/aa02a4e6d8337a0604d2da131bcbbeb1f01badf0/public/assets/vendor/quaternius/universal-animation-library.glb \
-            -o www/assets/characters/quaternius-universal-animation-library.glb
-          echo "4c748767741a3e495d89667b9a218b690ba9810b9517a12e960780e3ca72c4e9  www/assets/characters/quaternius-universal-animation-library.glb" | sha256sum -c -
-          curl -fL --retry 3 --retry-delay 2 \
-            https://raw.githubusercontent.com/Seyamalam/blood-league-kickoff/aa02a4e6d8337a0604d2da131bcbbeb1f01badf0/public/assets/vendor/quaternius/LICENSE-ANIMATIONS.txt \
-            -o www/assets/characters/LICENSE-Quaternius-Animations.txt
-
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
