@@ -344,7 +344,7 @@ function loadWildshoreCharacterModel(root,fallbackTorso,fallbackLegs,fallbackArm
  ready.then(GLTFLoader=>{
   const loader=new GLTFLoader();
   loader.setCrossOrigin('anonymous');
-  loader.load('https://vibeassets.io/download/zpepqtthci?combined=1',gltf=>{
+  loader.load('./assets/characters/camper_rigged_animated.glb',gltf=>{
    try{
     const model=gltf.scene;
     model.traverse(obj=>{if(obj.isMesh){obj.frustumCulled=true;obj.castShadow=true;obj.receiveShadow=true}});
