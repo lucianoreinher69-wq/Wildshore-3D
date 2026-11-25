@@ -20,6 +20,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      - name: Recover bundled character model from verified previous APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/wildshore-previous /tmp/wildshore-apk
+          gh run download 45315543256 --name Wildshore3D-Android-APK --dir /tmp/wildshore-previous
+          unzip -p /tmp/wildshore-previous/app-release.apk assets/public/assets/characters/camper_rigged_animated.glb > /tmp/wildshore-apk/camper_rigged_animated.glb
+          test "$(stat -c%s /tmp/wildshore-apk/camper_rigged_animated.glb)" -eq 3062188
+          mkdir -p www/assets/characters
+          cp /tmp/wildshore-apk/camper_rigged_animated.glb www/assets/characters/camper_rigged_animated.glb
+
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
