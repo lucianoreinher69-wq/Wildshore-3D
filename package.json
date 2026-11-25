@@ -4,7 +4,7 @@
   "private": true,
   "description": "Wildshore 3D survival game",
   "scripts": {
-    "build": "mkdir -p www/vendor && cp node_modules/three/build/three.min.js www/vendor/three.min.js"
+    "build": "mkdir -p www/vendor/loaders www/vendor/utils && cp node_modules/three/build/three.min.js www/vendor/three.min.js && cp node_modules/three/build/three.module.js www/vendor/three.module.js && cp node_modules/three/examples/jsm/loaders/GLTFLoader.js www/vendor/loaders/GLTFLoader.js && cp node_modules/three/examples/jsm/utils/BufferGeometryUtils.js www/vendor/utils/BufferGeometryUtils.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
