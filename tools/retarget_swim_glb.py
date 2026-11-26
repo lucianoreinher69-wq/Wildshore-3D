@@ -18,7 +18,7 @@ TARGET_NAMES = {
 }
 
 def align4(data):
-    return data + (b"\\0" * ((-len(data)) % 4))
+    return data + (b"\0" * ((-len(data)) % 4))
 
 def read_glb(path):
     data = Path(path).read_bytes()
@@ -36,7 +36,7 @@ def read_glb(path):
         chunk = data[offset:offset + size]
         offset += size
         if kind == 0x4E4F534A:
-            doc = json.loads(chunk.decode("utf-8").rstrip(" \\t\\r\\n\\0"))
+            doc = json.loads(chunk.decode("utf-8").rstrip(" \t\r\n\0"))
         elif kind == 0x004E4942:
             binary = chunk
     if doc is None or binary is None or not doc.get("buffers"):
@@ -110,7 +110,7 @@ def write_glb(path, doc, binary):
     doc["buffers"][0]["byteLength"] = len(binary)
     json_bytes = json.dumps(doc, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     json_bytes += b" " * ((-len(json_bytes)) % 4)
-    binary += b"\\0" * ((-len(binary)) % 4)
+    binary += b"\0" * ((-len(binary)) % 4)
     total = 12 + 8 + len(json_bytes) + 8 + len(binary)
     out = (
         b"glTF" + struct.pack("<II", 2, total)
