@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'www/**'
+      - 'tools/**'
       - 'package.json'
       - 'capacitor.config.json'
       - '.github/workflows/android-apk.yml'
@@ -30,6 +31,11 @@ jobs:
           test "$(stat -c%s /tmp/wildshore-apk/camper_rigged_animated.glb)" -eq 3062188
           mkdir -p www/assets/characters
           cp /tmp/wildshore-apk/camper_rigged_animated.glb www/assets/characters/camper_rigged_animated.glb
+
+      - name: Retarget swimming animations onto the bundled character
+        run: |
+          python3 tools/retarget_swim_glb.py www/assets/characters/camper_rigged_animated.glb tools/swim-retarget.bin.lzma.b64
+
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
