@@ -570,6 +570,8 @@ function createOceanSurface(){
   vertexShader:`
    uniform float uTime;
    uniform float uWaveScale;
+   uniform float uIslandSeed;
+   uniform vec2 uIslandProfile;
    varying float vWave;
    varying float vRadius;
    varying vec3 vWorldPosition;
