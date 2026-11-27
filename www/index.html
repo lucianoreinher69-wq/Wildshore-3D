@@ -602,7 +602,7 @@ function createOceanSurface(){
       +cos(y*.091-x*.027-uTime*1.18)*.42*.091
       +cos((x+y)*.155+uTime*1.62)*.18*.155
       -cos(x*.31-y*.22+uTime*2.05)*.065*.22
-      +cos(y*.43+x*.19-uTime*2.35)*.025*.43)*uWaveScale*shoreWave;
+      +cos(y*.43+x*.19-uTime*2.35)*.025*.43)*uWaveScale;
     vec4 world=modelMatrix*vec4(p,1.0);
     vWorldPosition=world.xyz;
     vNormal=normalize(mat3(modelMatrix)*vec3(-dx,-dy,1.0));
@@ -682,10 +682,9 @@ function createOceanSurface(){
 function sampleOceanWave(x,z){
  const y=-z,scale=oceanSurface&&oceanSurface.material.uniforms?oceanSurface.material.uniforms.uWaveScale.value:1;
  const a=x*.052+y*.018+oceanTime*.82,b=y*.091-x*.027-oceanTime*1.18,c=(x+y)*.155+oceanTime*1.62,d=x*.31-y*.22+oceanTime*2.05,e=y*.43+x*.19-oceanTime*2.35;
- const radius=Math.hypot(x,y),shore=Math.max(0,Math.min(1,(radius-55)/27)),fade=.12+.88*(shore*shore*(3-2*shore));
- const height=(Math.sin(a)*.72+Math.sin(b)*.42+Math.sin(c)*.18+Math.sin(d)*.065+Math.sin(e)*.025)*scale*fade;
- const dx=(Math.cos(a)*.72*.052-Math.cos(b)*.42*.027+Math.cos(c)*.18*.155+Math.cos(d)*.065*.31+Math.cos(e)*.025*.19)*scale*fade;
- const dy=(Math.cos(a)*.72*.018+Math.cos(b)*.42*.091+Math.cos(c)*.18*.155-Math.cos(d)*.065*.22+Math.cos(e)*.025*.43)*scale*fade;
+ const height=(Math.sin(a)*.72+Math.sin(b)*.42+Math.sin(c)*.18+Math.sin(d)*.065+Math.sin(e)*.025)*scale;
+ const dx=(Math.cos(a)*.72*.052-Math.cos(b)*.42*.027+Math.cos(c)*.18*.155+Math.cos(d)*.065*.31+Math.cos(e)*.025*.19)*scale;
+ const dy=(Math.cos(a)*.72*.018+Math.cos(b)*.42*.091+Math.cos(c)*.18*.155-Math.cos(d)*.065*.22+Math.cos(e)*.025*.43)*scale;
  return {height,slopeX:dx,slopeZ:-dy};
 }
 function updateOcean(dt){oceanTime+=dt;if(oceanSurface&&oceanSurface.material.uniforms){const uniforms=oceanSurface.material.uniforms;uniforms.uTime.value=oceanTime;const day=Math.max(1,Math.floor(Number(state.dayNumber)||1));let target=.48+(.5+.5*Math.sin(day*1.73+.4))*.92;if(state.weather==='rain')target*=1.08;else if(state.weather==='storm')target*=1.28;target=Math.max(.42,Math.min(1.65,target));uniforms.uWaveScale.value+=(target-uniforms.uWaveScale.value)*Math.min(1,dt*.18);} for(const shark of sharks){const obj=shark.obj,dx=player.position.x-obj.position.x,dz=player.position.z-obj.position.z,d=Math.hypot(dx,dz);shark.attackCooldown=Math.max(0,shark.attackCooldown-dt);if(isSwimming&&d<27&&shark.attackCooldown<=0){const step=Math.min(d,shark.speed*1.9*dt);if(d>.01){obj.position.x+=dx/d*step;obj.position.z+=dz/d*step;obj.rotation.y=Math.atan2(-dx,-dz)}if(d<2.8){state.hp=Math.max(1,state.hp-13);shark.attackCooldown=8;say('O tubarão atacou! Use a lança para se defender!');updateUI()}}else{shark.angle+=dt*shark.speed/Math.max(1,shark.r);const tx=Math.cos(shark.angle)*shark.r,tz=Math.sin(shark.angle)*shark.r;obj.position.x+=(tx-obj.position.x)*Math.min(1,dt*.8);obj.position.z+=(tz-obj.position.z)*Math.min(1,dt*.8);obj.rotation.y=Math.atan2(-(tx-obj.position.x),-(tz-obj.position.z))}obj.position.y=-2.75+Math.sin(oceanTime*2.1+shark.angle)*.16;obj.rotation.z=Math.sin(oceanTime*1.8+shark.angle)*.035}for(const school of oceanFishSchools){school.phase+=dt*.16;for(const fish of school.fish){const a=school.phase+fish.phase;fish.obj.position.set(school.cx+Math.cos(a)*fish.radius,fish.depth+Math.sin(oceanTime*2+fish.phase)*.12,school.cz+Math.sin(a)*fish.radius);fish.obj.rotation.y=-a-Math.PI/2;fish.obj.rotation.z=Math.sin(oceanTime*3+fish.phase)*.045}}}
