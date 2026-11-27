@@ -558,7 +558,7 @@ function createOceanSurface(){
  const waterGeo=new THREE.PlaneGeometry(520,520,192,192);
  const waterMat=new THREE.ShaderMaterial({
   transparent:true,depthWrite:false,side:THREE.DoubleSide,
-  uniforms:{uTime:{value:0},uWaveScale:{value:1}},
+  uniforms:{uTime:{value:0},uWaveScale:{value:1},uIslandStyle:{value:islandIndex}},
   vertexShader:`
    uniform float uTime;
    uniform float uWaveScale;
@@ -597,11 +597,36 @@ function createOceanSurface(){
    }`,
   fragmentShader:`
    uniform float uTime;
+   uniform float uIslandStyle;
    varying float vWave;
    varying float vRadius;
    varying vec3 vWorldPosition;
    varying vec3 vNormal;
    void main(){
+    // Mantém a água da referência #422, mas impede que a superfície
+    // seja desenhada por cima da ilha. A borda usa a mesma curva
+    // irregular do terreno para não criar uma linha reta ou uma faixa azul.
+    vec2 islandProfile;
+    if(uIslandStyle<0.5) islandProfile=vec2(1.48,.78);
+    else if(uIslandStyle<1.5) islandProfile=vec2(.78,1.42);
+    else if(uIslandStyle<2.5) islandProfile=vec2(1.38,.82);
+    else if(uIslandStyle<3.5) islandProfile=vec2(.92,1.3);
+    else if(uIslandStyle<4.5) islandProfile=vec2(1.42,.86);
+    else islandProfile=vec2(.82,1.46);
+    vec2 islandP=vec2(vWorldPosition.x/(60.0*islandProfile.x),vWorldPosition.z/(60.0*islandProfile.y));
+    float islandAngle=atan(islandP.y,islandP.x);
+    float cove=exp(-pow(atan(sin(islandAngle-(.82+(uIslandStyle+1.0)*.61)),cos(islandAngle-(.82+(uIslandStyle+1.0)*.61)))/.22,2.0));
+    float secondCove=exp(-pow(atan(sin(islandAngle-(3.72+(uIslandStyle+1.0)*.37)),cos(islandAngle-(3.72+(uIslandStyle+1.0)*.37)))/.28,2.0));
+    float thirdCove=exp(-pow(atan(sin(islandAngle-(2.35+(uIslandStyle+1.0)*.23)),cos(islandAngle-(2.35+(uIslandStyle+1.0)*.23)))/.2,2.0));
+    float fourthCove=exp(-pow(atan(sin(islandAngle-(5.35+(uIslandStyle+1.0)*.19)),cos(islandAngle-(5.35+(uIslandStyle+1.0)*.19)))/.18,2.0));
+    float headlands=.17*exp(-pow(atan(sin(islandAngle-(4.78+(uIslandStyle+1.0)*.29)),cos(islandAngle-(4.78+(uIslandStyle+1.0)*.29)))/.38,2.0))
+      +.12*exp(-pow(atan(sin(islandAngle-(2.82+(uIslandStyle+1.0)*.41)),cos(islandAngle-(2.82+(uIslandStyle+1.0)*.41)))/.31,2.0))
+      +.07*exp(-pow(atan(sin(islandAngle-(.18+(uIslandStyle+1.0)*.52)),cos(islandAngle-(.18+(uIslandStyle+1.0)*.52)))/.24,2.0));
+    float islandEdge=.94+.15*sin(2.0*islandAngle+(uIslandStyle+1.0)*.9)+.11*cos(3.0*islandAngle-(uIslandStyle+1.0)*.7)
+      +.065*sin(5.0*islandAngle+(uIslandStyle+1.0))+.035*cos(7.0*islandAngle-(uIslandStyle+1.0)*.4)
+      +.012*sin(11.0*islandAngle+(uIslandStyle+1.0)*.63)+.006*sin(17.0*islandAngle-(uIslandStyle+1.0)*.8)
+      +headlands-.22*cove-.16*secondCove-.11*thirdCove-.075*fourthCove;
+    if(length(islandP)<islandEdge) discard;
     vec3 n=normalize(vNormal);
     vec3 viewDir=normalize(cameraPosition-vWorldPosition);
     vec3 lightDir=normalize(vec3(-.38,.82,.34));
