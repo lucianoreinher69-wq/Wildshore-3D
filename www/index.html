@@ -187,7 +187,7 @@ function coastalPlayerShoreDistance(x,z){
  const worldScale=Math.hypot(Math.cos(angle)*p[0],Math.sin(angle)*p[1]);
  return (radius-edge)*60*worldScale;
 }
-function createCoastalShelf(){const seg=256,rings=12,positions=[],colors=[],indices=[],shallow=new THREE.Color(0x8cebdc),middle=new THREE.Color(0x35c8ca),deep=new THREE.Color(0x087d9c),profile=[[1.48,.78],[.78,1.42],[1.38,.82],[.92,1.3],[1.42,.86],[.82,1.46]][islandIndex];for(let j=0;j<=rings;j++){const t=j/rings,shelfDepth=Math.pow(t,.62);for(let i=0;i<=seg;i++){const a=i/seg*Math.PI*2,edge=islandShapeRadius(60,a,islandIndex+1),rad=edge*(1.0+t*.30),x=Math.cos(a)*rad*profile[0],z=Math.sin(a)*rad*profile[1];positions.push(x,-.45-5.8*shelfDepth,z);const blend=t*t*(3-2*t),c=blend<.42?shallow.clone().lerp(middle,blend/.42):middle.clone().lerp(deep,(blend-.42)/.58);const shade=.96+Math.sin(a*7+islandIndex)*.025;c.multiplyScalar(shade);colors.push(c.r,c.g,c.b)}}for(let j=0;j<rings;j++)for(let i=0;i<seg;i++){const a=j*(seg+1)+i,b=a+seg+1;indices.push(a,b,a+1,b,b+1,a+1)}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.setIndex(indices);geo.computeVertexNormals();const shelf=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:false,side:THREE.DoubleSide,depthWrite:true}));shelf.position.y=0;scene.add(shelf);terrain.push(shelf)}
+function createCoastalShelf(){const seg=256,rings=24,positions=[],colors=[],indices=[],shallow=new THREE.Color(0xcbb98c),middle=new THREE.Color(0xa99a73),deep=new THREE.Color(0x77745f),profile=[[1.48,.78],[.78,1.42],[1.38,.82],[.92,1.3],[1.42,.86],[.82,1.46]][islandIndex];for(let j=0;j<=rings;j++){const t=j/rings,shelfDepth=Math.pow(t,1.35);for(let i=0;i<=seg;i++){const a=i/seg*Math.PI*2,edge=islandShapeRadius(60,a,islandIndex+1),rad=edge*(1.0+t*.42),x=Math.cos(a)*rad*profile[0],z=Math.sin(a)*rad*profile[1];positions.push(x,-.45-5.8*shelfDepth,z);const blend=t*t*(3-2*t),c=blend<.5?shallow.clone().lerp(middle,blend/.5):middle.clone().lerp(deep,(blend-.5)/.5);const shade=.985+Math.sin(a*7+islandIndex)*.012;c.multiplyScalar(shade);colors.push(c.r,c.g,c.b)}}for(let j=0;j<rings;j++)for(let i=0;i<seg;i++){const a=j*(seg+1)+i,b=a+seg+1;indices.push(a,b,a+1,b,b+1,a+1)}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.setIndex(indices);geo.computeVertexNormals();const shelf=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:false,side:THREE.DoubleSide,depthWrite:true}));shelf.position.y=0;scene.add(shelf);terrain.push(shelf)}
 function coastalShelfCoordinate(x,z){
  const shoreDistance=coastalPlayerShoreDistance(x,z);
  if(shoreDistance<=0)return {inside:true,t:0};
@@ -555,78 +555,84 @@ function createOceanSurface(){
  oceanFloor.position.y=-6.35;
  scene.add(oceanFloor);
  terrain.push(oceanFloor);
- const waterGeo=new THREE.PlaneGeometry(520,520,192,192),waterMat=new THREE.ShaderMaterial({
- transparent:true,depthWrite:false,side:THREE.DoubleSide,
- uniforms:{uTime:{value:0},uWaveScale:{value:1}},
- vertexShader:`
- uniform float uTime;
- uniform float uWaveScale;
- varying float vWave;
- varying float vRadius;
- varying vec3 vWorldPosition;
- varying vec3 vNormal;
- void main(){
-   vec3 p=position;
-   float x=p.x; float y=p.y;
-   float a=sin(x*.052+y*.018+uTime*.82)*.72;
-   float b=sin(y*.091-x*.027-uTime*1.18)*.42;
-   float c=sin((x+y)*.155+uTime*1.62)*.18;
-   float d=sin(x*.31-y*.22+uTime*2.05)*.065;
-   float e=sin(y*.43+x*.19-uTime*2.35)*.025;
-   float radius=length(vec2(x,y));
-   // Dampen only the final approach to the beach; preserve full open-ocean waves.
-   float shoreWave=smoothstep(55.0,82.0,radius);
-   shoreWave=mix(.12,1.0,shoreWave);
-   float h=(a+b+c+d+e)*uWaveScale*shoreWave;
-   p.z+=h;
-   float dx=(cos(x*.052+y*.018+uTime*.82)*.72*.052
-     -cos(y*.091-x*.027-uTime*1.18)*.42*.027
-     +cos((x+y)*.155+uTime*1.62)*.18*.155
-     +cos(x*.31-y*.22+uTime*2.05)*.065*.31
-     +cos(y*.43+x*.19-uTime*2.35)*.025*.19)*uWaveScale*shoreWave;
-   float dy=(cos(x*.052+y*.018+uTime*.82)*.72*.018
-     +cos(y*.091-x*.027-uTime*1.18)*.42*.091
-     +cos((x+y)*.155+uTime*1.62)*.18*.155
-     -cos(x*.31-y*.22+uTime*2.05)*.065*.22
-     +cos(y*.43+x*.19-uTime*2.35)*.025*.43)*uWaveScale*shoreWave;
-   vec4 world=modelMatrix*vec4(p,1.0);
-   vWorldPosition=world.xyz;
-   vNormal=normalize(mat3(modelMatrix)*vec3(-dx,-dy,1.0));
-   vWave=h;
-   vRadius=length(world.xz);
-   gl_Position=projectionMatrix*viewMatrix*world;
- }`,
- fragmentShader:`
- uniform float uTime;
- varying float vWave;
- varying float vRadius;
- varying vec3 vWorldPosition;
- varying vec3 vNormal;
- void main(){
-   vec3 n=normalize(vNormal);
-   vec3 viewDir=normalize(cameraPosition-vWorldPosition);
-   vec3 lightDir=normalize(vec3(-.38,.82,.34));
-   float fresnel=pow(1.0-max(dot(n,viewDir),0.0),2.2);
-   float diffuse=.66+.34*max(dot(n,lightDir),0.0);
-   float spec=pow(max(dot(reflect(-lightDir,n),viewDir),0.0),48.0);
-   float shallow=1.0-smoothstep(62.0,205.0,vRadius);
-   vec3 deepColor=vec3(.004,.045,.12);
-   vec3 coastColor=vec3(.018,.34,.39);
-   vec3 water=mix(deepColor,coastColor,shallow);
-   float crest=smoothstep(.62,1.02,vWave);
-   float trough=1.0-smoothstep(-1.05,-.28,vWave);
-   float fine=smoothstep(.28,.62,sin(vWorldPosition.x*.34+vWorldPosition.z*.27+uTime*1.7)*.12+vWave);
-   float shoreRing=smoothstep(62.0,66.0,vRadius)*(1.0-smoothstep(76.0,82.0,vRadius));
-   float foam=clamp(crest*.9+fine*.22+shoreRing*.48,0.0,1.0);
-   vec3 color=water*diffuse;
-   color*=mix(.72,1.0,trough);
-   color=mix(color,vec3(.78,.94,.92),foam*.92);
-   color+=vec3(.55,.78,.84)*spec*1.25;
-   color+=vec3(.12,.32,.40)*fresnel*.48;
-   float waterAlpha=mix(.74,.24,shallow);waterAlpha=mix(waterAlpha,.94,foam*.88);gl_FragColor=vec4(color,waterAlpha);
- }`
+ const waterGeo=new THREE.PlaneGeometry(520,520,192,192);
+ const waterMat=new THREE.ShaderMaterial({
+  transparent:true,depthWrite:false,side:THREE.DoubleSide,
+  uniforms:{uTime:{value:0},uWaveScale:{value:1}},
+  vertexShader:`
+   uniform float uTime;
+   uniform float uWaveScale;
+   varying float vWave;
+   varying float vRadius;
+   varying vec3 vWorldPosition;
+   varying vec3 vNormal;
+   void main(){
+    vec3 p=position;
+    float x=p.x;float y=p.y;
+    float a=sin(x*.052+y*.018+uTime*.82)*.72;
+    float b=sin(y*.091-x*.027-uTime*1.18)*.42;
+    float c=sin((x+y)*.155+uTime*1.62)*.18;
+    float d=sin(x*.31-y*.22+uTime*2.05)*.065;
+    float e=sin(y*.43+x*.19-uTime*2.35)*.025;
+    float radius=length(vec2(x,y));
+    float shoreWave=mix(.12,1.0,smoothstep(55.0,82.0,radius));
+    float h=(a+b+c+d+e)*uWaveScale*shoreWave;
+    p.z+=h;
+    float dx=(cos(x*.052+y*.018+uTime*.82)*.72*.052
+      -cos(y*.091-x*.027-uTime*1.18)*.42*.027
+      +cos((x+y)*.155+uTime*1.62)*.18*.155
+      +cos(x*.31-y*.22+uTime*2.05)*.065*.31
+      +cos(y*.43+x*.19-uTime*2.35)*.025*.19)*uWaveScale*shoreWave;
+    float dy=(cos(x*.052+y*.018+uTime*.82)*.72*.018
+      +cos(y*.091-x*.027-uTime*1.18)*.42*.091
+      +cos((x+y)*.155+uTime*1.62)*.18*.155
+      -cos(x*.31-y*.22+uTime*2.05)*.065*.22
+      +cos(y*.43+x*.19-uTime*2.35)*.025*.43)*uWaveScale*shoreWave;
+    vec4 world=modelMatrix*vec4(p,1.0);
+    vWorldPosition=world.xyz;
+    vNormal=normalize(mat3(modelMatrix)*vec3(-dx,-dy,1.0));
+    vWave=h;
+    vRadius=length(world.xz);
+    gl_Position=projectionMatrix*viewMatrix*world;
+   }`,
+  fragmentShader:`
+   uniform float uTime;
+   varying float vWave;
+   varying float vRadius;
+   varying vec3 vWorldPosition;
+   varying vec3 vNormal;
+   void main(){
+    vec3 n=normalize(vNormal);
+    vec3 viewDir=normalize(cameraPosition-vWorldPosition);
+    vec3 lightDir=normalize(vec3(-.38,.82,.34));
+    float fresnel=pow(1.0-max(dot(n,viewDir),0.0),2.2);
+    float diffuse=.66+.34*max(dot(n,lightDir),0.0);
+    float spec=pow(max(dot(reflect(-lightDir,n),viewDir),0.0),48.0);
+    float shallow=1.0-smoothstep(62.0,205.0,vRadius);
+    vec3 deepColor=vec3(.004,.045,.12);
+    vec3 coastColor=vec3(.018,.34,.39);
+    vec3 water=mix(deepColor,coastColor,shallow);
+    float crest=smoothstep(.62,1.02,vWave);
+    float trough=1.0-smoothstep(-1.05,-.28,vWave);
+    float fine=smoothstep(.28,.62,sin(vWorldPosition.x*.34+vWorldPosition.z*.27+uTime*1.7)*.12+vWave);
+    float shoreRing=smoothstep(62.0,66.0,vRadius)*(1.0-smoothstep(76.0,82.0,vRadius));
+    float foam=clamp(crest*.9+fine*.22+shoreRing*.48,0.0,1.0);
+    vec3 color=water*diffuse;
+    color*=mix(.72,1.0,trough);
+    color=mix(color,vec3(.78,.94,.92),foam*.92);
+    color+=vec3(.55,.78,.84)*spec*1.25;
+    color+=vec3(.12,.32,.40)*fresnel*.48;
+    float waterAlpha=mix(.74,.24,shallow);
+    waterAlpha=mix(waterAlpha,.94,foam*.88);
+    gl_FragColor=vec4(color,waterAlpha);
+   }`
  });
- oceanSurface=new THREE.Mesh(waterGeo,waterMat);oceanSurface.rotation.x=-Math.PI/2;oceanSurface.position.y=-.42;oceanSurface.renderOrder=4;scene.add(oceanSurface);terrain.push(oceanSurface);
+ oceanSurface=new THREE.Mesh(waterGeo,waterMat);
+ oceanSurface.rotation.x=-Math.PI/2;
+ oceanSurface.position.y=-.42;
+ oceanSurface.renderOrder=4;
+ scene.add(oceanSurface);
+ terrain.push(oceanSurface);
  const sandMat=new THREE.MeshStandardMaterial({color:0xc6b487,roughness:1}),coralMats=[0xe47769,0xd98a55,0xb66f9e,0xe6c16e].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.8})),plantMat=new THREE.MeshStandardMaterial({color:0x267c58,roughness:.9,side:THREE.DoubleSide});
  for(let i=0;i<58;i++){const a=i*2.399963+islandIndex*.37,r=68+(i%11)*6.2,x=Math.cos(a)*r,z=Math.sin(a)*r,base=new THREE.Group();base.position.set(x,-6.25,z);base.rotation.y=a;const height=1.1+(i%5)*.24;for(let k=0;k<3;k++){const leaf=new THREE.Mesh(new THREE.ConeGeometry(.12,height,5),plantMat);leaf.position.set(Math.sin(k*2.1)*.16,height*.48,Math.cos(k*2.1)*.16);leaf.rotation.z=(k-1)*.22;leaf.scale.y=1.1;base.add(leaf)}scene.add(base);terrain.push(base)}
  for(let i=0;i<34;i++){const a=i*2.399963+1.1,r=72+(i%9)*7.5,x=Math.cos(a)*r,z=Math.sin(a)*r,group=new THREE.Group();group.position.set(x,-6.25,z);const mat=coralMats[i%coralMats.length],branches=3+(i%3);for(let k=0;k<branches;k++){const h=.55+(k%3)*.22,stem=new THREE.Mesh(new THREE.CylinderGeometry(.045,.085,h,6),mat);stem.position.set((k-1)*.13,h*.5,((k%2)-.5)*.16);stem.rotation.z=(k-1)*.22;group.add(stem);const tip=new THREE.Mesh(new THREE.SphereGeometry(.09,7,6),mat);tip.position.set((k-1)*.13,h,((k%2)-.5)*.16);group.add(tip)}const pebble=new THREE.Mesh(new THREE.DodecahedronGeometry(.42,0),sandMat);pebble.position.y=-.12;pebble.scale.set(1,.35,.8);group.add(pebble);scene.add(group);terrain.push(group)}
