@@ -322,7 +322,7 @@ const angle=j*2.399,leaf=new THREE.Mesh(shrubGeo,j%3===0?shrubLight:shrubMat);le
 }
 alignFloraToTerrain(bush,x,z,a,.006);scene.add(bush);terrain.push(bush)
 }
-}function createBiomeFeatures(){if(islandIndex===3){vegetationLandmarks.push({x:0,z:-7,radius:14});const mountain=new THREE.Mesh(new THREE.ConeGeometry(11,18,10),mat(0x51433d));mountain.position.set(0,8.8,-7);scene.add(mountain);terrain.push(mountain);const crater=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.8,.22,12),mat(0x241d1b));crater.position.set(0,17.7,-7);scene.add(crater);terrain.push(crater);const lava=new THREE.Mesh(new THREE.CircleGeometry(2.05,20),new THREE.MeshBasicMaterial({color:0xff4b08}));lava.rotation.x=-Math.PI/2;lava.position.set(0,17.84,-7);scene.add(lava);terrain.push(lava);for(let i=0;i<16;i++){const a=i*2.4,r=12+(i%5)*3,x=Math.cos(a)*r,z=Math.sin(a)*r,rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.8+Math.random()*.8,0),mat(0x51443f));rock.position.set(x,islandTerrainHeight(x,z)+.45,z);scene.add(rock);terrain.push(rock);vegetationLandmarks.push({x,z,radius:3.2})}}else if(islandIndex===4){const reef=new THREE.Mesh(new THREE.RingGeometry(47,61,96),new THREE.MeshBasicMaterial({color:0x39d6cf,transparent:true,opacity:.3,side:THREE.DoubleSide,depthWrite:false}));reef.rotation.x=-Math.PI/2;reef.position.y=-.27;reef.scale.set(1.42,.86,1);scene.add(reef);terrain.push(reef);for(let i=0;i<28;i++){const a=i*2.399,r=49+(i%5)*2.1,x=Math.cos(a)*r*1.42,z=Math.sin(a)*r*.86,g=new THREE.Group(),col=[0xe8759b,0xf1a45f,0x8b78c9,0x40c7c4,0xf0d36a][i%5];for(let j=0;j<3;j++){const h=.65+(j%2)*.42,branch=new THREE.Mesh(new THREE.ConeGeometry(.22,.75+h*.35,6),mat(col));branch.position.set((j-1)*.22,-.05+h*.2,0);g.add(branch)}g.position.set(x,-.12,z);scene.add(g);terrain.push(g)}}else if(islandIndex===5){const mistMat=new THREE.MeshBasicMaterial({color:0xe5f5f7,transparent:true,opacity:.2,depthWrite:false});for(let i=0;i<4;i++){const cloud=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),mistMat);cloud.scale.set(17+i*2,1.5+i*.25,5+i);cloud.position.set((i-1.5)*8,6.5+i*1.6,(i%2?7:-8));scene.add(cloud);terrain.push(cloud)}for(let i=0;i<5;i++){const x=-18+i*9,z=-9+(i%2)*13,peak=new THREE.Mesh(new THREE.ConeGeometry(4.5+(i%2),7+(i%3)*2,8),mat(0x53675f));peak.position.set(x,islandTerrainHeight(x,z)+3.5,z);scene.add(peak);terrain.push(peak);vegetationLandmarks.push({x,z,radius:6.5})}}createIslandGroundFlora()}function buildIsland(){for(const g of campfireGroups)scene.remove(g);campfireGroups=[];campfireGroup=null;campfireFlame=null;for(const l of campfireLights)scene.remove(l);campfireLights=[];campfireLight=null;for(const c of collectorGroups)scene.remove(c.obj);collectorGroups=[];collectorGroup=null;for(const s of shelterGroups)scene.remove(s.obj);shelterGroups=[];shelterGroup=null;for(const r of raftGroups)scene.remove(r.obj);raftGroups=[];raftGroup=null;for(const t of trapGroups)scene.remove(t.obj);trapGroups=[];for(const o of terrain)scene.remove(o);for(const r of resources)scene.remove(r.obj);for(const a of animals)scene.remove(a.obj);animals=[];for(const b of birds)scene.remove(b.obj);birds=[];if(raftGroup){scene.remove(raftGroup);raftGroup=null}if(shelterGroup){scene.remove(shelterGroup);shelterGroup=null}if(houseGroup){scene.remove(houseGroup);houseGroup=null}for(const c of chestGroups)scene.remove(c.obj);chestGroups=[];terrain=[];resources=[];beachRockColliders=[];createIslandTerrain();createIslandUnderside();createCoastalShelf();createCoastalRockFormations();createBeachDetails();createBiomeFeatures();createOceanSurface();createDistantIslands();const vegetationSpots=[];for(let i=0;i<68;i++){let x=0,z=0,placed=false;const profile=[[1.48,.78],[.78,1.42],[1.38,.82],[.92,1.3],[1.42,.86],[.82,1.46]][islandIndex],kind=i%7===0?'rock':i%5===0?'bush':i%4===0?'fiber':'tree',spacing=kind==='tree'?8.8:kind==='bush'?5.4:4.8;for(let attempt=0;attempt<30;attempt++){const a=Math.random()*Math.PI*2,shore=islandShapeRadius(60,a,islandIndex+1),maxLandRadius=Math.max(8,Math.min(46,shore-12)),r=4+Math.random()*Math.max(.5,maxLandRadius-4);x=Math.cos(a)*r*profile[0];z=Math.sin(a)*r*profile[1];const clearOfObjects=isClearOfVegetationLandmarks(x,z,kind==='tree'?2.2:1.2);const ground=islandTerrainHeight(x,z),slope=Math.max(Math.abs(ground-islandTerrainHeight(x+1.8,z)),Math.abs(ground-islandTerrainHeight(x-1.8,z)),Math.abs(ground-islandTerrainHeight(x,z+1.8)),Math.abs(ground-islandTerrainHeight(x,z-1.8)));if(clearOfObjects&&slope<1.35&&vegetationSpots.every(p=>Math.hypot(p.x-x,p.z-z)>=Math.max(spacing,p.spacing))){placed=true;break}}if(!placed)continue;vegetationSpots.push({x,z,spacing:kind==='tree'?8.8:kind==='bush'?5.4:4.8});if(kind==='rock')makeRock(x,z);else if(kind==='bush')makeBush(x,z);else if(kind==='fiber')makeFiber(x,z);else makeTree(x,z)}if(islandIndex===0){const starterPebbleSpots=[[-2.4,2.2],[2.7,2.0],[-3.1,-2.1],[3.2,-2.5],[0,4.2]];starterPebbleSpots.forEach(([x,z])=>makePebble(x,z));const starterLogSpots=[];for(let i=0;i<64&&starterLogSpots.length<4;i++){const angle=(i+.5)*Math.PI*2/64,x=Math.cos(angle)*7.2,z=Math.sin(angle)*7.2;if(vegetationSpots.some(p=>Math.hypot(p.x-x,p.z-z)<2.15)||starterLogSpots.some(p=>Math.hypot(p.x-x,p.z-z)<2.5))continue;makeFallenLog(x,z,angle+.35);starterLogSpots.push({x,z})}for(let i=0;i<32&&starterLogSpots.length<4;i++){const angle=(i+.5)*Math.PI*2/32,x=Math.cos(angle)*7.2,z=Math.sin(angle)*7.2;if(starterLogSpots.some(p=>Math.hypot(p.x-x,p.z-z)<2.5))continue;makeFallenLog(x,z,angle+.35);starterLogSpots.push({x,z})}}createWildlife();createBirds();(state.traps||[]).filter(t=>t.island===islandIndex).forEach(createTrapModel);player.position.set(Math.max(state.onRaft?-31:-15,Math.min(state.onRaft?31:15,Number.isFinite(state.x)?state.x:0)),state.onRaft ? .55 : .15+islandTerrainHeight(Math.max(-15,Math.min(15,Number.isFinite(state.x)?state.x:0)),Math.max(-15,Math.min(15,Number.isFinite(state.z)?state.z:0))),Math.max(state.onRaft?-31:-15,Math.min(state.onRaft?31:15,Number.isFinite(state.z)?state.z:0)));(state.shelters||[]).filter(s=>s.island===islandIndex).forEach(createShelter);if(!(state.shelters||[]).length&&state.shelter&&state.shelterIsland===islandIndex)createShelter();if((state.houseParts||[]).some(p=>p.island===islandIndex)||(state.houseStage&&state.houseIsland===islandIndex))createHouse();(state.chests||[]).filter(c=>c.island===islandIndex).forEach(createChestModel);(state.campfires||[]).filter(f=>f.island===islandIndex).forEach(createCampfire);if(!(state.campfires||[]).length&&state.campfire&&state.campfireIsland===islandIndex)createCampfire();(state.collectors||[]).filter(v=>v.island===islandIndex).forEach(createWaterCollector);if(!(state.collectors||[]).length&&state.waterCollector&&state.waterCollectorIsland===islandIndex)createWaterCollector({x:state.waterCollectorX,z:state.waterCollectorZ,island:islandIndex});(state.rafts||[]).filter(v=>v.island===islandIndex).forEach(createRaftModel);if(!(state.rafts||[]).length&&state.raft)createRaftModel();$('island').textContent='Ilha: '+islands[islandIndex]}
+}function createBiomeFeatures(){if(islandIndex===3){vegetationLandmarks.push({x:0,z:-7,radius:14});const mountain=new THREE.Mesh(new THREE.ConeGeometry(11,18,10),mat(0x51433d));mountain.position.set(0,8.8,-7);scene.add(mountain);terrain.push(mountain);const crater=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.8,.22,12),mat(0x241d1b));crater.position.set(0,17.7,-7);scene.add(crater);terrain.push(crater);const lava=new THREE.Mesh(new THREE.CircleGeometry(2.05,20),new THREE.MeshBasicMaterial({color:0xff4b08}));lava.rotation.x=-Math.PI/2;lava.position.set(0,17.84,-7);scene.add(lava);terrain.push(lava);for(let i=0;i<16;i++){const a=i*2.4,r=12+(i%5)*3,x=Math.cos(a)*r,z=Math.sin(a)*r,rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.8+Math.random()*.8,0),mat(0x51443f));rock.position.set(x,islandTerrainHeight(x,z)+.45,z);scene.add(rock);terrain.push(rock);vegetationLandmarks.push({x,z,radius:3.2})}}else if(islandIndex===4){const reef=new THREE.Mesh(new THREE.RingGeometry(47,61,96),new THREE.MeshBasicMaterial({color:0x39d6cf,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));reef.rotation.x=-Math.PI/2;reef.position.y=-1.1;reef.scale.set(1.42,.86,1);scene.add(reef);terrain.push(reef);for(let i=0;i<28;i++){const a=i*2.399,r=49+(i%5)*2.1,x=Math.cos(a)*r*1.42,z=Math.sin(a)*r*.86,g=new THREE.Group(),col=[0xe8759b,0xf1a45f,0x8b78c9,0x40c7c4,0xf0d36a][i%5];for(let j=0;j<3;j++){const h=.65+(j%2)*.42,branch=new THREE.Mesh(new THREE.ConeGeometry(.22,.75+h*.35,6),mat(col));branch.position.set((j-1)*.22,-.05+h*.2,0);g.add(branch)}g.position.set(x,-.12,z);scene.add(g);terrain.push(g)}}else if(islandIndex===5){const mistMat=new THREE.MeshBasicMaterial({color:0xe5f5f7,transparent:true,opacity:.2,depthWrite:false});for(let i=0;i<4;i++){const cloud=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),mistMat);cloud.scale.set(17+i*2,1.5+i*.25,5+i);cloud.position.set((i-1.5)*8,6.5+i*1.6,(i%2?7:-8));scene.add(cloud);terrain.push(cloud)}for(let i=0;i<5;i++){const x=-18+i*9,z=-9+(i%2)*13,peak=new THREE.Mesh(new THREE.ConeGeometry(4.5+(i%2),7+(i%3)*2,8),mat(0x53675f));peak.position.set(x,islandTerrainHeight(x,z)+3.5,z);scene.add(peak);terrain.push(peak);vegetationLandmarks.push({x,z,radius:6.5})}}createIslandGroundFlora()}function buildIsland(){for(const g of campfireGroups)scene.remove(g);campfireGroups=[];campfireGroup=null;campfireFlame=null;for(const l of campfireLights)scene.remove(l);campfireLights=[];campfireLight=null;for(const c of collectorGroups)scene.remove(c.obj);collectorGroups=[];collectorGroup=null;for(const s of shelterGroups)scene.remove(s.obj);shelterGroups=[];shelterGroup=null;for(const r of raftGroups)scene.remove(r.obj);raftGroups=[];raftGroup=null;for(const t of trapGroups)scene.remove(t.obj);trapGroups=[];for(const o of terrain)scene.remove(o);for(const r of resources)scene.remove(r.obj);for(const a of animals)scene.remove(a.obj);animals=[];for(const b of birds)scene.remove(b.obj);birds=[];if(raftGroup){scene.remove(raftGroup);raftGroup=null}if(shelterGroup){scene.remove(shelterGroup);shelterGroup=null}if(houseGroup){scene.remove(houseGroup);houseGroup=null}for(const c of chestGroups)scene.remove(c.obj);chestGroups=[];terrain=[];resources=[];beachRockColliders=[];createIslandTerrain();createIslandUnderside();createCoastalShelf();createCoastalRockFormations();createBeachDetails();createBiomeFeatures();createOceanSurface();createDistantIslands();const vegetationSpots=[];for(let i=0;i<68;i++){let x=0,z=0,placed=false;const profile=[[1.48,.78],[.78,1.42],[1.38,.82],[.92,1.3],[1.42,.86],[.82,1.46]][islandIndex],kind=i%7===0?'rock':i%5===0?'bush':i%4===0?'fiber':'tree',spacing=kind==='tree'?8.8:kind==='bush'?5.4:4.8;for(let attempt=0;attempt<30;attempt++){const a=Math.random()*Math.PI*2,shore=islandShapeRadius(60,a,islandIndex+1),maxLandRadius=Math.max(8,Math.min(46,shore-12)),r=4+Math.random()*Math.max(.5,maxLandRadius-4);x=Math.cos(a)*r*profile[0];z=Math.sin(a)*r*profile[1];const clearOfObjects=isClearOfVegetationLandmarks(x,z,kind==='tree'?2.2:1.2);const ground=islandTerrainHeight(x,z),slope=Math.max(Math.abs(ground-islandTerrainHeight(x+1.8,z)),Math.abs(ground-islandTerrainHeight(x-1.8,z)),Math.abs(ground-islandTerrainHeight(x,z+1.8)),Math.abs(ground-islandTerrainHeight(x,z-1.8)));if(clearOfObjects&&slope<1.35&&vegetationSpots.every(p=>Math.hypot(p.x-x,p.z-z)>=Math.max(spacing,p.spacing))){placed=true;break}}if(!placed)continue;vegetationSpots.push({x,z,spacing:kind==='tree'?8.8:kind==='bush'?5.4:4.8});if(kind==='rock')makeRock(x,z);else if(kind==='bush')makeBush(x,z);else if(kind==='fiber')makeFiber(x,z);else makeTree(x,z)}if(islandIndex===0){const starterPebbleSpots=[[-2.4,2.2],[2.7,2.0],[-3.1,-2.1],[3.2,-2.5],[0,4.2]];starterPebbleSpots.forEach(([x,z])=>makePebble(x,z));const starterLogSpots=[];for(let i=0;i<64&&starterLogSpots.length<4;i++){const angle=(i+.5)*Math.PI*2/64,x=Math.cos(angle)*7.2,z=Math.sin(angle)*7.2;if(vegetationSpots.some(p=>Math.hypot(p.x-x,p.z-z)<2.15)||starterLogSpots.some(p=>Math.hypot(p.x-x,p.z-z)<2.5))continue;makeFallenLog(x,z,angle+.35);starterLogSpots.push({x,z})}for(let i=0;i<32&&starterLogSpots.length<4;i++){const angle=(i+.5)*Math.PI*2/32,x=Math.cos(angle)*7.2,z=Math.sin(angle)*7.2;if(starterLogSpots.some(p=>Math.hypot(p.x-x,p.z-z)<2.5))continue;makeFallenLog(x,z,angle+.35);starterLogSpots.push({x,z})}}createWildlife();createBirds();(state.traps||[]).filter(t=>t.island===islandIndex).forEach(createTrapModel);player.position.set(Math.max(state.onRaft?-31:-15,Math.min(state.onRaft?31:15,Number.isFinite(state.x)?state.x:0)),state.onRaft ? .55 : .15+islandTerrainHeight(Math.max(-15,Math.min(15,Number.isFinite(state.x)?state.x:0)),Math.max(-15,Math.min(15,Number.isFinite(state.z)?state.z:0))),Math.max(state.onRaft?-31:-15,Math.min(state.onRaft?31:15,Number.isFinite(state.z)?state.z:0)));(state.shelters||[]).filter(s=>s.island===islandIndex).forEach(createShelter);if(!(state.shelters||[]).length&&state.shelter&&state.shelterIsland===islandIndex)createShelter();if((state.houseParts||[]).some(p=>p.island===islandIndex)||(state.houseStage&&state.houseIsland===islandIndex))createHouse();(state.chests||[]).filter(c=>c.island===islandIndex).forEach(createChestModel);(state.campfires||[]).filter(f=>f.island===islandIndex).forEach(createCampfire);if(!(state.campfires||[]).length&&state.campfire&&state.campfireIsland===islandIndex)createCampfire();(state.collectors||[]).filter(v=>v.island===islandIndex).forEach(createWaterCollector);if(!(state.collectors||[]).length&&state.waterCollector&&state.waterCollectorIsland===islandIndex)createWaterCollector({x:state.waterCollectorX,z:state.waterCollectorZ,island:islandIndex});(state.rafts||[]).filter(v=>v.island===islandIndex).forEach(createRaftModel);if(!(state.rafts||[]).length&&state.raft)createRaftModel();$('island').textContent='Ilha: '+islands[islandIndex]}
 function createPlayerCharacter(){
  const g=new THREE.Group();
  const skin=mat(0xb98262),skinLight=mat(0xd49a78),hair=mat(0x171719),beard=mat(0x211d1c),shirt=mat(0x171a1e),shirtShade=mat(0x292d31),pants=mat(0x8b7958),pantsDark=mat(0x6e6048),boot=mat(0x302923),sole=mat(0x171513),glove=mat(0x242321),pack=mat(0x62543a),packLight=mat(0x80704f),packDark=mat(0x403827),webbing=mat(0x4c432f),metal=mat(0xb0a27f),eyeMat=mat(0x211b18),eyeWhite=mat(0xf1e8dc);
@@ -559,14 +559,46 @@ function createOceanSurface(){
  const waterGeo=new THREE.PlaneGeometry(520,520,192,192);
  const waterMat=new THREE.ShaderMaterial({
   transparent:true,depthWrite:false,side:THREE.DoubleSide,
-  uniforms:{uTime:{value:0},uWaveScale:{value:1}},
+  uniforms:{uTime:{value:0},uWaveScale:{value:1},uIslandIndex:{value:islandIndex}},
   vertexShader:`
    uniform float uTime;
    uniform float uWaveScale;
+   uniform int uIslandIndex;
    varying float vWave;
    varying float vRadius;
+   varying float vShoreDistance;
    varying vec3 vWorldPosition;
    varying vec3 vNormal;
+   float wrappedAngle(float v){return atan(sin(v),cos(v));}
+   float angleBell(float a,float center,float width){float v=wrappedAngle(a-center)/width;return exp(-(v*v));}
+   float islandEdge(float a,float seed){
+    float cove=angleBell(a,.82+seed*.61,.22);
+    float secondCove=angleBell(a,3.72+seed*.37,.28);
+    float thirdCove=angleBell(a,2.35+seed*.23,.20);
+    float fourthCove=angleBell(a,5.35+seed*.19,.18);
+    float headlands=.17*angleBell(a,4.78+seed*.29,.38)
+      +.12*angleBell(a,2.82+seed*.41,.31)
+      +.07*angleBell(a,.18+seed*.52,.24);
+    float shape=.94+.15*sin(2.0*a+seed*.9)+.11*cos(3.0*a-seed*.7)
+      +.065*sin(5.0*a+seed)+.035*cos(7.0*a-seed*.4)
+      +.012*sin(11.0*a+seed*.63)+.006*sin(17.0*a-seed*.8)
+      +headlands-.22*cove-.16*secondCove-.11*thirdCove-.075*fourthCove;
+    return max(.16,shape);
+   }
+   float signedShoreDistance(vec2 worldXZ){
+    vec2 profile=vec2(1.48,.78);
+    if(uIslandIndex==1)profile=vec2(.78,1.42);
+    else if(uIslandIndex==2)profile=vec2(1.38,.82);
+    else if(uIslandIndex==3)profile=vec2(.92,1.30);
+    else if(uIslandIndex==4)profile=vec2(1.42,.86);
+    else if(uIslandIndex==5)profile=vec2(.82,1.46);
+    vec2 local=worldXZ/profile;
+    float radius=length(local);
+    float a=atan(local.y,local.x);
+    float edge=islandEdge(a,float(uIslandIndex+1));
+    float worldScale=length(vec2(cos(a)*profile.x,sin(a)*profile.y));
+    return (radius-edge)*60.0*worldScale;
+   }
    void main(){
     vec3 p=position;
     float x=p.x;float y=p.y;
@@ -575,8 +607,9 @@ function createOceanSurface(){
     float c=sin((x+y)*.155+uTime*1.62)*.18;
     float d=sin(x*.31-y*.22+uTime*2.05)*.065;
     float e=sin(y*.43+x*.19-uTime*2.35)*.025;
-    float radius=length(vec2(x,y));
-    float shoreWave=mix(.12,1.0,smoothstep(55.0,82.0,radius));
+    vec4 world=modelMatrix*vec4(p,1.0);
+    float shoreDistance=signedShoreDistance(world.xz);
+    float shoreWave=smoothstep(0.0,24.0,shoreDistance);
     float h=(a+b+c+d+e)*uWaveScale*shoreWave;
     p.z+=h;
     float dx=(cos(x*.052+y*.018+uTime*.82)*.72*.052
@@ -589,8 +622,9 @@ function createOceanSurface(){
       +cos((x+y)*.155+uTime*1.62)*.18*.155
       -cos(x*.31-y*.22+uTime*2.05)*.065*.22
       +cos(y*.43+x*.19-uTime*2.35)*.025*.43)*uWaveScale*shoreWave;
-    vec4 world=modelMatrix*vec4(p,1.0);
+    world=modelMatrix*vec4(p,1.0);
     vWorldPosition=world.xyz;
+    vShoreDistance=shoreDistance;
     vNormal=normalize(mat3(modelMatrix)*vec3(-dx,-dy,1.0));
     vWave=h;
     vRadius=length(world.xz);
@@ -599,8 +633,9 @@ function createOceanSurface(){
   fragmentShader:`
    uniform float uTime;
    varying float vWave;
-   varying float vRadius;
-   varying vec3 vWorldPosition;
+    varying float vRadius;
+    varying float vShoreDistance;
+    varying vec3 vWorldPosition;
    varying vec3 vNormal;
    void main(){
     vec3 n=normalize(vNormal);
@@ -609,23 +644,25 @@ function createOceanSurface(){
     float fresnel=pow(1.0-max(dot(n,viewDir),0.0),2.2);
     float diffuse=.66+.34*max(dot(n,lightDir),0.0);
     float spec=pow(max(dot(reflect(-lightDir,n),viewDir),0.0),48.0);
-    float shallow=1.0-smoothstep(62.0,205.0,vRadius);
+    float shallow=1.0-smoothstep(4.0,150.0,max(vShoreDistance,0.0));
     vec3 deepColor=vec3(.004,.045,.12);
     vec3 coastColor=vec3(.018,.34,.39);
     vec3 water=mix(deepColor,coastColor,shallow);
     float crest=smoothstep(.62,1.02,vWave);
     float trough=1.0-smoothstep(-1.05,-.28,vWave);
     float fine=smoothstep(.28,.62,sin(vWorldPosition.x*.34+vWorldPosition.z*.27+uTime*1.7)*.12+vWave);
-    float shoreRing=smoothstep(62.0,66.0,vRadius)*(1.0-smoothstep(76.0,82.0,vRadius));
-    float foam=clamp(crest*.9+fine*.22+shoreRing*.48,0.0,1.0);
+    float shoreRing=smoothstep(.2,1.8,vShoreDistance)*(1.0-smoothstep(5.0,9.0,vShoreDistance));
+     float foam=clamp(crest*.9+fine*.22+shoreRing*.22,0.0,1.0);
     vec3 color=water*diffuse;
     color*=mix(.72,1.0,trough);
     color=mix(color,vec3(.78,.94,.92),foam*.92);
     color+=vec3(.55,.78,.84)*spec*1.25;
     color+=vec3(.12,.32,.40)*fresnel*.48;
-    float waterAlpha=mix(.74,.24,shallow);
-    waterAlpha=mix(waterAlpha,.94,foam*.88);
-    gl_FragColor=vec4(color,waterAlpha);
+    float shoreMask=smoothstep(.15,2.8,vShoreDistance);
+     float waterAlpha=mix(.74,.24,shallow);
+     waterAlpha=mix(waterAlpha,.94,foam*.88);
+     waterAlpha*=shoreMask;
+     gl_FragColor=vec4(color,waterAlpha);
    }`
  });
  oceanSurface=new THREE.Mesh(waterGeo,waterMat);
