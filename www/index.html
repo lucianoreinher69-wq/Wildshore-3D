@@ -592,7 +592,7 @@ function createOceanSurface(){
     else if(uIslandIndex==3)profile=vec2(.92,1.30);
     else if(uIslandIndex==4)profile=vec2(1.42,.86);
     else if(uIslandIndex==5)profile=vec2(.82,1.46);
-    vec2 local=worldXZ/profile;
+    vec2 local=worldXZ/(60.0*profile);
     float radius=length(local);
     float a=atan(local.y,local.x);
     float edge=islandEdge(a,float(uIslandIndex+1));
